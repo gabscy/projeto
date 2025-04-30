@@ -9,12 +9,17 @@ export class QuadraController {
 
     async cadastrarQuadra(dados: Quadra): Promise<Quadra> {
         const novaQuadra: Quadra = {
-            nome: dados.nome,
-            tipo: dados.tipo,
-            endereco: dados.endereco,
-            descricao: dados.descricao,
-            preco: dados.preco,
-            regras: dados.regras
+            courtName: dados.courtName,
+            courtType: dados.courtType,
+            courtAddress: dados.courtAddress,
+            courtPrice: dados.courtPrice,
+            courtRules: dados.courtRules,
+            courtDescription: dados.courtDescription,
+            selectedDays: dados.selectedDays,
+            selectedTimeStart: dados.selectedTimeStart,
+            selectedTimeEnd: dados.selectedTimeEnd,
+            slot: dados.slot,
+            slotId: dados.slotId,
         }
 
         try {

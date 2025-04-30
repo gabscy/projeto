@@ -3,12 +3,17 @@ import { open, Database } from 'sqlite';
 
 export interface Quadra {
     id?: number;
-    nome: string;
-    tipo: string;
-    endereco: string;
-    preco: number;
-    regras: string;
-    descricao: string;
+    courtName: string;
+    courtType: string;
+    courtAddress: string;
+    courtPrice: number;
+    courtRules: string;
+    courtDescription: string;
+    selectedDays: string;
+    selectedTimeStart: number;
+    selectedTimeEnd: number;
+    slot: number;
+    slotId: number;
 }
 
 export class QuadraModel {
@@ -27,12 +32,17 @@ export class QuadraModel {
         await db.exec(`
             CREATE TABLE IF NOT EXISTS quadras (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL,
-                tipo TEXT NOT NULL,
-                endereco TEXT NOT NULL,
-                preco REAL NOT NULL,
-                regras TEXT NOT NULL,
-                descricao TEXT NOT NULL
+                name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                address TEXT NOT NULL,
+                price REAL NOT NULL,
+                rules TEXT NOT NULL,
+                description TEXT NOT NULL,
+                time_start TEXT NOT NULL,
+                time_end TEXT NOT NULL,
+                slot TEXT NOT NULL,
+                slot_id INTEGER NOT NULL,
+                FOREIGN KEY (slot_id) REFERENCES slots(id)
             )
         `);
     }
@@ -40,8 +50,8 @@ export class QuadraModel {
     async criar(data: Quadra): Promise<Quadra> {
         const db = await this.dbPromise;
         const result = await db.run(
-            'INSERT INTO quadras (nome, tipo, endereco, preco, regras, descricao) VALUES (?, ?, ?, ?, ?, ?)',
-            [data.nome, data.tipo, data.endereco, data.preco, data.regras, data.descricao]
+            'INSERT INTO quadras (name, type, address, price, rules, description, time_start, time_end, slot, slot_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [data.courtName, data.courtType, data.courtAddress, data.courtPrice, data.courtRules, data.courtDescription, data.selectedTimeStart, data.selectedTimeEnd, data.slot, data.slotId]
         )
         const id = result.lastID;
         if (id) {
