@@ -478,10 +478,6 @@ const tiposQuadras = [
     value: "beach-tennis",
     label: "Beach Tennis",
   },
-  {
-    value: "calca",
-    label: "Calca",
-  },
 ]
 
 const slotsQuadra = [
