@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Separator } from "@/components/ui/separator"
+
 
 function BuscarQuadrasView() {
   return (
@@ -48,6 +50,7 @@ function BuscarQuadrasView() {
                 <div>
                     <h4 className='font-bold'>Filtros</h4>
                 </div>
+                <Separator />
 
                 <div>
 
