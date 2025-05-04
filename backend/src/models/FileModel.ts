@@ -7,7 +7,7 @@ export class FileModel {
     private supabaseInstance;
 
     constructor() {
-        this.supabaseInstance = createClient('https://pfzqpczpptkxgbrqjkkz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmenFwY3pwcHRreGdicnFqa2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwNDQ3ODksImV4cCI6MjA2MTYyMDc4OX0.hy4n4-WizAZkfbB6w1gckDf97s5_Y1QGUhBOpCgBVsI')
+        this.supabaseInstance = createClient(process.env.SUPABASE_URL as string, process.env.SUPABASE_KEY as string)
     }
 
     async uploadImage(file: File): Promise<string> {
