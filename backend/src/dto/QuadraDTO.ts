@@ -3,6 +3,11 @@ export interface BuscarDisponibilidadeDTO {
     quadraId: string;
 }
 
+export interface disponibilidadeDTO {
+    quadra_info: PegarHorarioFuncionamentoDTO;
+    reservas: horarioFuncionamentoDTO[]
+}
+
 export interface ReservarQuadraDTO {
     quadraId: string;
     dataReserva: string;
@@ -22,4 +27,20 @@ export interface ReservarQuadraDTO {
 export interface AtualizarPagamentoReservaDTO {
     id: string;
     pagamento_id: string;
+}
+
+export interface PegarReservasDTO {
+    date: string,
+    quadraId: string,
+}
+
+export interface PegarHorarioFuncionamentoDTO {
+    horario_inicio: string, 
+    horario_fim: string, 
+    slot: string
+}
+
+export interface horarioFuncionamentoDTO {
+    horario_inicio: string,
+    horario_fim: string,
 }

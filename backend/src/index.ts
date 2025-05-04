@@ -6,6 +6,9 @@ import { FileController } from './controller/FileController';
 import { BuscarDisponibilidadeDTO } from './dto/QuadraDTO';
 import { ReservaController } from './controller/ReservaController';
 import { PagamentoController } from './controller/PagamentoController';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const port = 3000;
@@ -47,8 +50,8 @@ app.get('/disponibilidade-quadra', async (req: Request, res: Response) => {
             quadraId: req.query.quadraId as string,
         };
 
-        quadraController.buscarDisponibilidade(dados)
-        res.status(201).json({ message: "disponibilidade"});
+        const disponibilidade = await quadraController.buscarDisponibilidade(dados)
+        res.status(201).json(disponibilidade);
     } catch (error: any) {
         console.error("Não foi possível buscar a disponibilidade da quadra")
         res.status(400).json({ message: error.message })

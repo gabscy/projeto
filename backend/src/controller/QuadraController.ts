@@ -1,4 +1,4 @@
-import { BuscarDisponibilidadeDTO } from "../dto/QuadraDTO";
+import { BuscarDisponibilidadeDTO, disponibilidadeDTO } from "../dto/QuadraDTO";
 import { Quadra, QuadraModel } from "../models/QuadraModel";
 
 export class QuadraController {
@@ -34,6 +34,13 @@ export class QuadraController {
         }
     }
 
-    async buscarDisponibilidade(dados: BuscarDisponibilidadeDTO) {
+    async buscarDisponibilidade(dados: BuscarDisponibilidadeDTO): Promise<disponibilidadeDTO> {
+        const horariosReservas = await this.quadraModel.pegarReservas(dados)
+        const horarioFuncionamento = await this.quadraModel.pegarHorarioFuncionamento(dados.quadraId)
+        
+        return {
+            quadra_info: horarioFuncionamento,
+            reservas: horariosReservas
+        }
     }
 }
