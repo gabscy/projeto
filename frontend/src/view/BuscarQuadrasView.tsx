@@ -13,6 +13,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge"
 import { FaStar } from "react-icons/fa";
 import { Button } from '../components/ui/button';
+import { Link } from 'react-router-dom';
+
 
 
 
@@ -24,6 +26,7 @@ function BuscarQuadrasView() {
         "beach-tennis": true,
         volei: true,
     });
+
 
     const [minPrice, setMinPrice] = useState<number | string>('');
     const [maxPrice, setMaxPrice] = useState<number | string>('');
@@ -175,205 +178,28 @@ function BuscarQuadrasView() {
             <div className='col-span-7 col-start-4 row-start-2 row-span-10 '>
                 <ScrollArea className="h-200 w-full ">
                     <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
+                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
                         <div className='w-full h-full flex flex-col gap-4'>
                             <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
                             <div className='flex flex-row gap-2'>
                                 <Label >4.2</Label>
                                 <FaStar />
                             </div>
-                            
                             <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
                             <div className='flex flex-row align-center gap-2 mt-4'>
                                 <Badge variant="outline">Futebol</Badge>
                                 <Badge variant="outline">12 pessoas</Badge>
-
                             </div>
                         </div>
 
                         <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
                                 <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
+                                <Link to={`/reservar-quadra`}>
+                                    <Button variant="outline">Reservar</Button>
+                                </Link>  
                         </div>
-                    
                     </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadrateste"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
-
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Button variant="outline">Reservar</Button>
-
-                        </div>
-                    
-                    </Card>
+                  
                 </ScrollArea> 
             </div>
 
