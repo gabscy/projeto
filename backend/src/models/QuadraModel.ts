@@ -1,5 +1,6 @@
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
+import { BuscarDisponibilidadeDTO, horarioFuncionamentoDTO, PegarHorarioFuncionamentoDTO } from '../dto/QuadraDTO';
 
 export interface Quadra {
     id?: number;
@@ -12,6 +13,8 @@ export interface Quadra {
     selectedDays: string;
     selectedTimeStart: number;
     selectedTimeEnd: number;
+    courtImageUrl: string;
+    courtDocumentUrl: string;
     slot: number;
     slotId: number;
 }
@@ -42,6 +45,8 @@ export class QuadraModel {
                 time_end TEXT NOT NULL,
                 slot TEXT NOT NULL,
                 slot_id INTEGER NOT NULL,
+                image_url TEXT NOT NULL,
+                document_url TEXT NOT NULL,
                 FOREIGN KEY (slot_id) REFERENCES slots(id)
             )
         `);
@@ -50,13 +55,31 @@ export class QuadraModel {
     async criar(data: Quadra): Promise<Quadra> {
         const db = await this.dbPromise;
         const result = await db.run(
-            'INSERT INTO quadras (name, type, address, price, rules, description, time_start, time_end, slot, slot_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [data.courtName, data.courtType, data.courtAddress, data.courtPrice, data.courtRules, data.courtDescription, data.selectedTimeStart, data.selectedTimeEnd, data.slot, data.slotId]
+            'INSERT INTO quadras (name, type, address, price, rules, description, time_start, time_end, slot, slot_id, image_url, document_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [data.courtName, data.courtType, data.courtAddress, data.courtPrice, data.courtRules, data.courtDescription, data.selectedTimeStart, data.selectedTimeEnd, data.slot, data.slotId, data.courtImageUrl, data.courtDocumentUrl]
         )
         const id = result.lastID;
         if (id) {
             return {id, ...data}
         }
         throw new Error('Erro ao inserir quadra')
+    }
+
+    async pegarReservas(data: BuscarDisponibilidadeDTO): Promise<horarioFuncionamentoDTO[]> {
+        const db = await this.dbPromise;
+        const query = "SELECT horario_inicio, horario_fim FROM reservas WHERE data = ? AND quadra_id = ?";
+        const values = [data.date, data.quadraId];
+
+        const result = await db.all(query, values) as horarioFuncionamentoDTO[];
+        return result
+    }
+
+    async pegarHorarioFuncionamento(quadraId: string): Promise<PegarHorarioFuncionamentoDTO>{
+        const db = await this.dbPromise;
+        const query = "SELECT time_start, time_end, slot FROM quadras WHERE id = ?"
+        const values = [quadraId]
+
+        const horarioDeFuncionamento = await db.all(query, values) as PegarHorarioFuncionamentoDTO
+        return horarioDeFuncionamento
     }
 }

@@ -1,3 +1,4 @@
+import { BuscarDisponibilidadeDTO, disponibilidadeDTO } from "../dto/QuadraDTO";
 import { Quadra, QuadraModel } from "../models/QuadraModel";
 
 export class QuadraController {
@@ -18,6 +19,8 @@ export class QuadraController {
             selectedDays: dados.selectedDays,
             selectedTimeStart: dados.selectedTimeStart,
             selectedTimeEnd: dados.selectedTimeEnd,
+            courtImageUrl: dados.courtImageUrl,
+            courtDocumentUrl: dados.courtDocumentUrl,
             slot: dados.slot,
             slotId: dados.slotId,
         }
@@ -28,6 +31,16 @@ export class QuadraController {
         } catch (error: any) {
             console.error("Erro ao criar quadra no banco de dados", error);
             throw new Error("Erro ao cadastrar quadra");
+        }
+    }
+
+    async buscarDisponibilidade(dados: BuscarDisponibilidadeDTO): Promise<disponibilidadeDTO> {
+        const horariosReservas = await this.quadraModel.pegarReservas(dados)
+        const horarioFuncionamento = await this.quadraModel.pegarHorarioFuncionamento(dados.quadraId)
+        
+        return {
+            quadra_info: horarioFuncionamento,
+            reservas: horariosReservas
         }
     }
 }
