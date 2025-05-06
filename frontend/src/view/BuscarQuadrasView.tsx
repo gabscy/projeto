@@ -31,7 +31,6 @@ function BuscarQuadrasView() {
     const [minPrice, setMinPrice] = useState<number | string>('');
     const [maxPrice, setMaxPrice] = useState<number | string>('');
 
-    const [maxPlayerNumber, setMaxPlayerNumber] = useState<number | string>('');
 
     const handleCheckboxClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         const { id } = event.currentTarget;
@@ -41,19 +40,15 @@ function BuscarQuadrasView() {
         }));
       };
 
+
     const handleMinPriceChange = (value: string) => {
         const numValue = value ? Number(value) : '';
-        numValue === "" ?   setMaxPlayerNumber(numValue) : numValue < 0 ? setMaxPlayerNumber(0) : setMaxPlayerNumber(numValue)
+        numValue === "" ?   setMinPrice(numValue) : numValue < 0 ? setMinPrice(0) : setMinPrice(numValue)
     };
 
     const handleMaxPriceChange = (value: string) => {
         const numValue = value ? Number(value) : '';
-        numValue === "" ?   setMaxPlayerNumber(numValue) : numValue < 0 ? setMaxPlayerNumber(0) : setMaxPlayerNumber(numValue)
-    };
-
-    const handleMaxPlayerNumberChange = (value: string) => {
-        const numValue = value ? Number(value) : '';
-        numValue === "" ?   setMaxPlayerNumber(numValue) : numValue > 30 ? setMaxPlayerNumber(40) : setMaxPlayerNumber(numValue)
+        numValue === "" ?   setMaxPrice(numValue) : numValue < 0 ? setMaxPrice(0) : setMaxPrice(numValue)
     };
 
 
@@ -152,15 +147,7 @@ function BuscarQuadrasView() {
                 </div>
                 <Separator />
 
-                <Label className='font-bold'>Número máximo de jogadores</Label>
-                <Input 
-                    className='w-1/2'
-                    type='number' 
-                    placeholder='N. Jogadores'
-                    value={maxPlayerNumber}
-                    onChange={(e) => handleMaxPlayerNumberChange(e.target.value)}
-                />
-
+                
             </Card>
 
             <div className='relative col-span-7'>
@@ -188,7 +175,6 @@ function BuscarQuadrasView() {
                             <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
                             <div className='flex flex-row align-center gap-2 mt-4'>
                                 <Badge variant="outline">Futebol</Badge>
-                                <Badge variant="outline">12 pessoas</Badge>
                             </div>
                         </div>
 

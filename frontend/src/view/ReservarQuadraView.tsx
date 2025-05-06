@@ -37,6 +37,7 @@ function BuscarQuadrasView() {
 	const [date, setDate] = React.useState<Date>();
 	const today = startOfDay(new Date());
 	const oneMonthFromToday = addMonths(today, 1);
+	const [time, setTime] = useState<string>();
 
 	return (
 		<>
@@ -80,13 +81,13 @@ function BuscarQuadrasView() {
 					<Label className='text-lg font-normal'>Rua Jararaquara 123</Label>
 					<div className='flex flex-row align-center gap-2 mt-4'>
 						<Badge className='text-sm' 	variant="outline">Futebol</Badge>
-						<Badge className='text-sm' variant="outline">12 pessoas</Badge>
+						
 					</div>
 
 				</div>
 
-				<Card className='h-80'>
-					<img 	className="w-auto h-full object-contain " src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
+				<Card className='h-60'>
+					<img className="w-auto h-full object-contain " src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
 				</Card>
 
 				<div>
@@ -122,7 +123,6 @@ Os utilizadores são responsáveis por manter a quadra limpa e organizada.
 					<Separator className='h-0'/>
 				</div>
 
-
 				<Label className='font-bold text-2xl'>Reservar</Label>
 				<div className='grid grid-cols-3'>
 					<div className='flex flex-col gap-4'>
@@ -152,10 +152,7 @@ Os utilizadores são responsáveis por manter a quadra limpa e organizada.
 							</PopoverContent>
 						</Popover>
 					</div>
-          
-
 				</div>
-
 
 			</section>
 

@@ -8,15 +8,14 @@ import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { cn } from '../lib/utils';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { format, isAfter, setHours, setMinutes } from 'date-fns';
+import { format, isAfter, isValid, setHours, setMinutes } from 'date-fns';
 import { Button } from '../components/ui/button';
 import { FaRegClock } from "react-icons/fa";
 import { Textarea } from '../components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
-
-function CadastroQuadraView() {
+function PublicarQuadraView() {
   const [selectedTimeStart, setSelectedTimeStart] = useState<Date | undefined>(undefined);
   const [selectedTimeEnd, setSelectedTimeEnd] = useState<Date | undefined>(undefined);
   const [isPopoverOpenStart, setIsPopoverOpenStart] = useState(false);
@@ -25,6 +24,10 @@ function CadastroQuadraView() {
   const [courtName, setCourtName] = useState('');
   const [opencourtType, setOpenCourtType] = useState(false)
   const [courtType, setCourtType] = useState("")
+  const [courtState, setCourtState] = useState<UF | null>(null);
+  const [openState, setOpenState] = useState(false);
+  const [courtCity, setCourtCity] = useState<Cidade | null>(null);
+  const [courtCEP, setCourtCEP] = useState('')
   const [courtAddress, setCourtAddress] = useState('');
   const [courtRules, setCourtRules] = useState('');
   const [courtDescription, setCourtDescription] = useState('');
@@ -32,6 +35,11 @@ function CadastroQuadraView() {
   const [courtDocument, setCourtDocument] = useState<File | null>(null);
   const [openSlot, setOpenSlot] = useState(false)
   const [slot, setSlot] = useState("")
+  const [courtPrice, setCourtPrice] = useState('')
+  const [openCity, setOpenCity] = useState(false)
+
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [isFormValid, setIsFormValid] = useState(false);
 
 
   const generateTimeOptions = (startTime?: Date) => {
@@ -91,13 +99,13 @@ function CadastroQuadraView() {
   const validEndTimeOptions = getValidEndTimeOptions();
 
   const [selectedDays, setSelectedDays] = useState<Record<string, boolean>>({
-    segunda: false,
-    terca: false,
-    quarta: false,
-    quinta: false,
-    sexta: false,
-    sabado: false,
-    domingo: false,
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
+    saturday: false,
+    sunday: false,
   });
 
   const handleCheckboxClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -120,37 +128,128 @@ function CadastroQuadraView() {
     console.log('Selected Image:', file);
   };
 
-  const handleSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData();
+  useEffect(() => {
+    validateForm();
+   }, [courtName, courtType, courtAddress, courtState, courtDescription, courtRules, selectedDays, selectedTimeStart, selectedTimeEnd, slot, courtDocument, courtImage]);
 
-    // Add each field to FormData
-    formData.append("courtName", courtName);
-    formData.append("courtType", courtType);
-    formData.append("courtAddress", courtAddress);
-    formData.append("courtDescription", courtDescription);
-    formData.append("courtRules", courtRules);
 
-    // Convert `selectedDays` (array or object) into a JSON string if needed
-    formData.append("selectedDays", JSON.stringify(selectedDays));
+  useEffect(() => {
+    console.log(isFormValid)
+  }, [isFormValid]);
 
-    // Convert time values
-    formData.append("selectedTimeStart", selectedTimeStart?.getHours().toString() as string);
-    formData.append("selectedTimeEnd", selectedTimeEnd?.getHours().toString() as string);
 
-    formData.append("slot", slot);
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    let isValid = true;
 
-    if (courtImage) {
-      formData.append('courtImage', courtImage);
+    if (!courtName.trim()) {
+      errors.courtName = "Por favor, insira o nome da quadra.";
+      isValid = false;
+    }
+    if (!courtType) {
+      errors.courtType = "Por favor, selecione o tipo de quadra.";
+      isValid = false;
+    }
+    if (!courtAddress.trim()) {
+      errors.courtAddress = "Por favor, insira o endereço da quadra.";
+      isValid = false;
+    }
+    if (!courtState) {
+      errors.courtState = "Por favor, selecione o estado do tribunal.";
+      isValid = false;
     }
 
-    if (courtDocument) {
-      formData.append('courtDocument', courtDocument);
+    if (!courtCEP) {
+      errors.slot = "Por favor, digite o CEP.";
+      isValid = false;
+    }
+    if (!courtDescription.trim()) {
+      errors.courtDescription = "Por favor, insira a descrição da quadra.";
+      isValid = false;
+    }
+    if (!courtRules.trim()) {
+      errors.courtRules = "Por favor, insira as regras da quadra.";
+      isValid = false;
+    }
+    if (!Object.values(selectedDays).some(Boolean)) {
+      errors.selectedDays = "Por favor, selecione pelo menos um dia de funcionamento.";
+      isValid = false;
+    }
+    
+    if (!selectedTimeStart) {
+      errors.selectedTimeStart = "Por favor, selecione o horário de início.";
+      isValid = false;
+    }
+    if (!selectedTimeEnd) {
+      errors.selectedTimeEnd = "Por favor, selecione o horário de término.";
+      isValid = false;
+    }
+    if (!slot) {
+      errors.slot = "Por favor, selecione a duração do slot.";
+      isValid = false;
+    }
+    
+    if (!courtPrice) {
+      errors.slot = "Por favor, digite o Preco.";
+      isValid = false;
     }
 
-    const entries = Object.fromEntries(formData.entries());
-    console.log(entries);
-  }
+    if (!courtImage){
+      errors.courtImage = "Por favor, escolha uma imagem";
+      isValid = false;
+    }
+    if(!courtDocument){
+      errors.courtDocument = "Por favor, escolha um documento.";
+      isValid = false
+    }
+   
+    setFormErrors(errors);
+    setIsFormValid(isValid);
+ 
+  };
+
+  const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    validateForm();
+
+    if (isFormValid) {
+      const formData = new FormData();
+      formData.append("courtName", courtName);
+      formData.append("courtType", courtType);
+      formData.append("courtAddress", courtAddress);
+      formData.append("courtState", courtState?.value || '');
+      formData.append("courtCity", courtCity?.value || '');
+      formData.append("courtCEP",courtCEP)
+      formData.append("courtDescription", courtDescription);
+      formData.append("courtRules", courtRules);
+      formData.append("selectedDays", JSON.stringify(selectedDays));
+      formData.append("selectedTimeStart", selectedTimeStart?.getHours().toString() as string);
+      formData.append("selectedTimeEnd", selectedTimeEnd?.getHours().toString() as string);
+      formData.append("slot", slot);
+      formData.append("courtPrice", courtPrice)
+
+      
+      if (courtImage) {
+
+        formData.append('courtImage', courtImage);
+      }
+      if (courtDocument) {
+        formData.append('courtDocument', courtDocument);
+      }
+  
+      const response = await fetch('http://localhost:3000/quadra', {
+        method: 'POST',
+        body: formData, // Envia o FormData diretamente
+      });
+
+      console.log(response.body);
+
+
+    } else {
+      console.log("Formulário inválido. Por favor, corrija os erros.");
+    }
+  };
 
   return (
     <>
@@ -243,6 +342,94 @@ function CadastroQuadraView() {
                 onChange={(e) => setCourtAddress(e.target.value)}
               />
             </div>
+            
+            <div className='flex flex-row gap-10'>
+              <div className="flex items-center space-x-4">
+                <Label>Estado</Label>
+                <Popover open={openState} onOpenChange={setOpenState}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline">
+                      {courtState ? (
+                        <>{courtState.label}</>
+                      ) : (
+                        <>Selecionar Estado</>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-40" side="right" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar estado..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum estado encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {estados.map((estado) => (
+                            <CommandItem
+                              key={estado.label}
+                              value={estado.value}
+                              onSelect={(value) => {
+                                setCourtState(
+                                  estados.find((uf) => uf.value === value) || null
+                                );
+                                setOpenState(false);
+                              }}
+                            >
+                              {estado.label} 
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <Label>Cidade</Label>
+              <Popover open={openCity} onOpenChange={setOpenCity}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-[220px] justify-start", formErrors.courtCity && "ring-red-500")}>
+                    {courtCity ? (
+                      <>{courtCity.label}</> 
+                    ) : (
+                      <>Selecionar Cidade</>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-80" side="right" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar cidade..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>
+                      <CommandGroup>
+                        {cidadesSaoPaulo.map((cidade) => (
+                          <CommandItem
+                            key={cidade.label}
+                            value={cidade.value}
+                            onSelect={(value) => {
+                              setCourtCity(
+                                cidadesSaoPaulo.find((c) => c.value === value) || null
+                              );
+                              setOpenCity(false);
+                            }}
+                          >
+                            {cidade.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {formErrors.courtCity && <p className="text-sm text-red-500">{formErrors.courtCity}</p>}
+            </div>
+            
+            <div className='flex gap-4'>
+              <Label>CEP</Label>
+              <Input type='number' onChange={(e) => {setCourtCEP(e.target.value)}}/>
+            </div>
+
+          </div>
+            
 
             <div className='grid gap-2'>
               <Label>Regras da quadra</Label>
@@ -264,37 +451,37 @@ function CadastroQuadraView() {
               <Label>Dias de funcionamento</Label>
               <div className='flex gap-4'>
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.segunda} onClick={handleCheckboxClick} id="segunda" />
+                  <Checkbox checked={selectedDays.monday} onClick={handleCheckboxClick} id="monday" />
                   <Label htmlFor="segunda">Segunda</Label>
                 </div>
 
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.terca} onClick={handleCheckboxClick} id="terca" />
+                  <Checkbox checked={selectedDays.tuesday} onClick={handleCheckboxClick} id="tuesday" />
                   <Label htmlFor="terca">Terça</Label>
                 </div>
 
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.quarta} onClick={handleCheckboxClick} id="quarta" />
+                  <Checkbox checked={selectedDays.wednesday} onClick={handleCheckboxClick} id="wednesday" />
                   <Label htmlFor="quarta">Quarta</Label>
                 </div>
 
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.quinta} onClick={handleCheckboxClick} id="quinta" />
+                  <Checkbox checked={selectedDays.thursday} onClick={handleCheckboxClick} id="thursday" />
                   <Label htmlFor="quinta">Quinta</Label>
                 </div>
 
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.sexta} onClick={handleCheckboxClick} id="sexta" />
+                  <Checkbox checked={selectedDays.friday} onClick={handleCheckboxClick} id="friday" />
                   <Label htmlFor="sexta">Sexta</Label>
                 </div>
 
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.sabado} onClick={handleCheckboxClick} id="sabado" />
+                  <Checkbox checked={selectedDays.saturday} onClick={handleCheckboxClick} id="saturday" />
                   <Label htmlFor="sabado">Sábado</Label>
                 </div>
 
                 <div className='flex gap-1'>
-                  <Checkbox checked={selectedDays.domingo} onClick={handleCheckboxClick} id="domingo" />
+                  <Checkbox checked={selectedDays.sunday} onClick={handleCheckboxClick} id="sunday" />
                   <Label htmlFor="domingo">Domingo</Label>
                 </div>
               </div>
@@ -434,6 +621,14 @@ function CadastroQuadraView() {
             </div>
 
             <div className='grid gap-2'>
+              <Label>Preço da Reserva</Label>
+              <Input 
+                type="number"
+                onChange={(e)=> setCourtPrice(e.target.value)}
+              />
+            </div>
+
+            <div className='grid gap-2'>
               <Label>Foto da quadra</Label>
               <Input 
                 type="file"
@@ -460,6 +655,24 @@ function CadastroQuadraView() {
 const hoverClass = (isMidnightOrAfter: boolean) => {
   return isMidnightOrAfter ? "" : "hover:bg-gray-100 dark:hover:bg-gray-800";
 }
+
+type UF = {
+  value: string;
+  label: string;
+};
+
+const estados: UF[] = [
+  { value: "SP", label: "SP" }
+];
+
+interface ComboboxEstadosProps {
+  courtState: UF | null;
+  setCourtState: React.Dispatch<React.SetStateAction<UF | null>>;
+  openState: boolean;
+  setOpenState: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+
 
 const tiposQuadras = [
   {
@@ -497,6 +710,115 @@ const slotsQuadra = [
     value: "120",
     label: "2:00",
   }
+
 ]
 
-export default CadastroQuadraView
+type Cidade = {
+  value: string;
+  label: string;
+};
+
+const cidadesSaoPaulo: Cidade[] = [
+  { value: 'sao_paulo', label: 'São Paulo' },
+  { value: 'guarulhos', label: 'Guarulhos' },
+  { value: 'campinas', label: 'Campinas' },
+  { value: 'sao_bernardo_do_campo', label: 'São Bernardo do Campo' },
+  { value: 'santo_andre', label: 'Santo André' },
+  { value: 'osasco', label: 'Osasco' },
+  { value: 'sao_jose_dos_campos', label: 'São José dos Campos' },
+  { value: 'sorocaba', label: 'Sorocaba' },
+  { value: 'ribeirao_preto', label: 'Ribeirão Preto' },
+  { value: 'maua', label: 'Mauá' },
+  { value: 'sao_jose_do_rio_preto', label: 'São José do Rio Preto' },
+  { value: 'mogi_das_cruzes', label: 'Mogi das Cruzes' },
+  { value: 'jundiai', label: 'Jundiaí' },
+  { value: 'piracicaba', label: 'Piracicaba' },
+  { value: 'carapicuiba', label: 'Carapicuíba' },
+  { value: 'bauru', label: 'Bauru' },
+  { value: 'itaquaquecetuba', label: 'Itaquaquecetuba' },
+  { value: 'sao_vicente', label: 'São Vicente' },
+  { value: 'diadema', label: 'Diadema' },
+  { value: 'franca', label: 'Franca' },
+  { value: 'guaruja', label: 'Guarujá' },
+  { value: 'taubate', label: 'Taubaté' },
+  { value: 'suzano', label: 'Suzano' },
+  { value: 'praia_grande', label: 'Praia Grande' },
+  { value: 'limeira', label: 'Limeira' },
+  { value: 'americana', label: 'Americana' },
+  { value: 'itapecerica_da_serra', label: 'Itapecerica da Serra' },
+  { value: 'presidente_prudente', label: 'Presidente Prudente' },
+  { value: 'rio_claro', label: 'Rio Claro' },
+  { value: 'araraquara', label: 'Araraquara' },
+  { value: 'ferraz_de_vasconcelos', label: 'Ferraz de Vasconcelos' },
+  { value: 'santa_barbara_doeste', label: 'Santa Bárbara d\'Oeste' },
+  { value: 'cotia', label: 'Cotia' },
+  { value: 'taboao_da_serra', label: 'Taboão da Serra' },
+  { value: 'sumare', label: 'Sumaré' },
+  { value: 'olimpia', label: 'Olímpia' },
+  { value: 'catanduva', label: 'Catanduva' },
+  { value: 'itu', label: 'Itu' },
+  { value: 'botucatu', label: 'Botucatu' },
+  { value: 'sao_carlos', label: 'São Carlos' },
+  { value: 'atibaia', label: 'Atibaia' },
+  { value: 'indaiatuba', label: 'Indaiatuba' },
+  { value: 'hortolandia', label: 'Hortolândia' },
+  { value: 'araras', label: 'Araras' },
+  { value: 'itapevi', label: 'Itapevi' },
+  { value: 'cubatao', label: 'Cubatão' },
+  { value: 'barretos', label: 'Barretos' },
+  { value: 'votorantim', label: 'Votorantim' },
+  { value: 'paulinia', label: 'Paulínia' },
+  { value: 'birigui', label: 'Birigui' },
+  { value: 'mongagua', label: 'Mongaguá' },
+  { value: 'itapetininga', label: 'Itapetininga' },
+  { value: 'aracatuba', label: 'Araçatuba' },
+  { value: 'guaratingueta', label: 'Guaratinguetá' },
+  { value: 'jacarei', label: 'Jacareí' },
+  { value: 'itapolis', label: 'Itápolis' },
+  { value: 'penapolis', label: 'Penápolis' },
+  { value: 'registro', label: 'Registro' },
+  { value: 'ubatuba', label: 'Ubatuba' },
+  { value: 'ilhabela', label: 'Ilhabela' },
+  { value: 'caraguatatuba', label: 'Caraguatatuba' },
+  { value: 'sao_sebastiao', label: 'São Sebastião' },
+  { value: 'bertioga', label: 'Bertioga' },
+  { value: 'peruibe', label: 'Peruíbe' },
+  { value: 'itanhaem', label: 'Itanhaém' },
+  { value: 'jaguariuna', label: 'Jaguariúna' },
+  { value: 'amparo', label: 'Amparo' },
+  { value: 'pedreira', label: 'Pedreira' },
+  { value: 'holambra', label: 'Holambra' },
+  { value: 'santo_antonio_de_posse', label: 'Santo Antônio de Posse' },
+  { value: 'aguas_de_lindoia', label: 'Águas de Lindóia' },
+  { value: 'lindoia', label: 'Lindóia' },
+  { value: 'socorro', label: 'Socorro' },
+  { value: 'serra_negra', label: 'Serra Negra' },
+  { value: 'itatiba', label: 'Itatiba' },
+  { value: 'braganca_paulista', label: 'Bragança Paulista' },
+  { value: 'piracaia', label: 'Piracaia' },
+  { value: 'nazaré_paulista', label: 'Nazaré Paulista' },
+  { value: 'bom_jesus_dos_perdoes', label: 'Bom Jesus dos Perdões' },
+  { value: 'mairipora', label: 'Mairiporã' },
+  { value: 'franco_da_rocha', label: 'Franco da Rocha' },
+  { value: 'caieiras', label: 'Caieiras' },
+  { value: 'francisco_morato', label: 'Francisco Morato' },
+  { value: 'embudas_artes', label: 'Embu das Artes' },
+  { value: 'varzea_paulista', label: 'Várzea Paulista' },
+  { value: 'campo_limpo_paulista', label: 'Campo Limpo Paulista' },
+  { value: 'jarinu', label: 'Jarinu' },
+  { value: 'louveira', label: 'Louveira' },
+  { value: 'vinhedo', label: 'Vinhedo' },
+  { value: 'valinhos', label: 'Valinhos' },
+  { value: 'cosmopolis', label: 'Cosmópolis' },
+  { value: 'artur_nogueira', label: 'Artur Nogueira' },
+  { value: 'engenheiro_coelho', label: 'Engenheiro Coelho' },
+  { value: 'conchal', label: 'Conchal' },
+  { value: 'leme', label: 'Leme' },
+  { value: 'capivari', label: 'Capivari' },
+  { value: 'rafard', label: 'Rafard' },
+  { value: 'elias_fausto', label: 'Elias Fausto' },
+  { value: 'monte_mor', label: 'Monte Mor' },
+  { value: 'nova_odessa', label: 'Nova Odessa' },
+];
+
+export default PublicarQuadraView
