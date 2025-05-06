@@ -1,4 +1,3 @@
-import { BuscarDisponibilidadeDTO, disponibilidadeDTO } from "../dto/QuadraDTO";
 import { Quadra, QuadraModel } from "../models/QuadraModel";
 
 export class QuadraController {
@@ -33,6 +32,16 @@ export class QuadraController {
         } catch (error: any) {
             console.error("Erro ao criar quadra no banco de dados", error);
             throw new Error("Erro ao cadastrar quadra");
+        }
+    }
+
+    async buscarQuadras(): Promise<Quadra[]> {
+        try {
+            const quadras = await this.quadraModel.buscarQuadras();
+            return quadras
+        } catch (error: any) {
+            console.error("Não foi possível filtrar quadras ", error)
+            throw new Error("Não foi possível filtrar quadras")
         }
     }
 }

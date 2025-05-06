@@ -84,6 +84,17 @@ app.post('/reservar-quadra', async (req: Request, res: Response) => {
     }
 })
 
+app.get('/buscar-quadras', async (req: Request, res: Response) => {
+    try {
+        const quadras = await quadraController.buscarQuadras()
+
+        res.status(200).json({ quadras })
+    } catch (error: any) {
+        console.error("Não foi possível filtrar quadras")
+        res.status(400).json({ message: error.message })
+    }
+})
+
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
