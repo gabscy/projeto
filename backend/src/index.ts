@@ -8,6 +8,7 @@ import { ReservaController } from './controller/ReservaController';
 import { PagamentoController } from './controller/PagamentoController';
 import dotenv from "dotenv";
 import { UserController } from './controller/UserController';
+import cors from "cors";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 app.use(express.json());
+app.use(cors());
 
 app.post('/quadra', upload.fields([
     { name: 'courtImage', maxCount: 1 },
