@@ -33,9 +33,17 @@ app.post('/quadra', upload.fields([
         const courtImageUrl = await fileController.uploadImage(files['courtImage'][0])
         const courtDocumentUrl = await fileController.uploadImage(files['courtDocument'][0])
 
-        const slotId = await slotController.cadastrarSlot(JSON.parse(req.body.selectedDays))
+        
+        const novaQuadra = await quadraController.cadastrarQuadra({...req.body, courtImageUrl, courtDocumentUrl});
 
-        const novaQuadra = await quadraController.cadastrarQuadra({...req.body, slotId, courtImageUrl, courtDocumentUrl});
+        const slotId = await slotController.cadastrarSlot({
+            quadra_id: novaQuadra.id!,
+            horario_inicio: novaQuadra.selectedTimeStart,
+            horario_fim: novaQuadra.selectedTimeEnd,
+            dias_funcionamento: novaQuadra.selectedDays,
+            slot: novaQuadra.slot,
+        })
+        
         res.status(201).json(novaQuadra);
     } catch (error: any) {
         console.error("Erro ao criar quadra", error);

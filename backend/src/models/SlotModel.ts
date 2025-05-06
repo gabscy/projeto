@@ -1,15 +1,12 @@
 import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
+import { cadastrarSlotDTO } from '../dto/QuadraDTO';
 
 export interface Slot {
-    id: number;
-    monday: boolean;
-    tuesday: boolean;
-    wednesday: boolean;
-    thursday: boolean;
-    friday: boolean;
-    saturday: boolean;
-    sunday: boolean;
+    quadra_id: number;
+    date: Date;
+    horario_inicio: number;
+    horario_fim: number;
 }
 
 export class SlotModel {
@@ -28,28 +25,34 @@ export class SlotModel {
         await db.exec(`
             CREATE TABLE IF NOT EXISTS slots (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            monday BOOLEAN NOT NULL DEFAULT 0,
-            tuesday BOOLEAN NOT NULL DEFAULT 0,
-            wednesday BOOLEAN NOT NULL DEFAULT 0,
-            thursday BOOLEAN NOT NULL DEFAULT 0,
-            friday BOOLEAN NOT NULL DEFAULT 0,
-            saturday BOOLEAN NOT NULL DEFAULT 0,
-            sunday BOOLEAN NOT NULL DEFAULT 0
+            quadra_id TEXT NOT NULL, 
+            date TEXT NOT NULL,
+            horario_inicio INT NOT NULL,
+            horario_fim INT NOT NULL,
+            FOREIGN KEY (quadra_id) REFERENCES quadras(id)
             )
         `);
     }
 
-    async criar(slot: Omit<Slot, 'id'>): Promise<Slot> {
+    async criar(slotsDTOs: Array<Slot>): Promise<void> {
         const db = await this.dbPromise;
-        const result = await db.run(
-          'INSERT INTO slots (monday, tuesday, wednesday, thursday, friday, saturday, sunday) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [slot.monday, slot.tuesday, slot.wednesday, slot.thursday, slot.friday, slot.saturday, slot.sunday]
-        );
-        const id = result.lastID;
-        if (id) {
-          return { id, ...slot };
+    
+        // Extract all slots from multiple cadastrarSlotDTO entries
+        const slots = slotsDTOs.map(slot => [slot.quadra_id, slot.date.toISOString().split("T")[0], slot.horario_inicio, slot.horario_fim])
+    
+        if (slots.length === 0) {
+            throw new Error("Nenhum slot para inserir.");
         }
-        throw new Error('Erro ao inserir slot de disponibilidade.');
+    
+        // Prepare dynamic SQL query
+        const placeholders = slots.map(() => "(?, ?, ?, ?)").join(", ");
+        const query = `INSERT INTO slots (quadra_id, date, horario_inicio, horario_fim) VALUES ${placeholders}`;
+    
+        try {
+            await db.run(query, slots.flat()); // Flatten values array
+        } catch (error: any) {
+            throw new Error("Erro ao inserir slots de disponibilidade: " + error.message);
+        }
     }
 
     async buscarPorQuadraId(quadraId: number): Promise<Slot | undefined> {

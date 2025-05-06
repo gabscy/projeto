@@ -22,7 +22,6 @@ export class QuadraController {
             courtImageUrl: dados.courtImageUrl,
             courtDocumentUrl: dados.courtDocumentUrl,
             slot: dados.slot,
-            slotId: dados.slotId,
         }
 
         try {

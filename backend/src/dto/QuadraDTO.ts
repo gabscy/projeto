@@ -1,3 +1,5 @@
+import { Slot } from "../models/SlotModel";
+
 export interface BuscarDisponibilidadeDTO {
     date: string;
     quadraId: string;
@@ -43,4 +45,13 @@ export interface PegarHorarioFuncionamentoDTO {
 export interface horarioFuncionamentoDTO {
     horario_inicio: string,
     horario_fim: string,
+}
+
+export interface cadastrarSlotDTO {
+    dias_funcionamento: string,
+    quadra_id: number,
+    horario_inicio: number,
+    horario_fim: number,
+    slot: number,
+    slots: Slot[],
 }

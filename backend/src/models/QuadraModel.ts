@@ -16,7 +16,6 @@ export interface Quadra {
     courtImageUrl: string;
     courtDocumentUrl: string;
     slot: number;
-    slotId: number;
 }
 
 export class QuadraModel {
@@ -44,10 +43,8 @@ export class QuadraModel {
                 time_start TEXT NOT NULL,
                 time_end TEXT NOT NULL,
                 slot TEXT NOT NULL,
-                slot_id INTEGER NOT NULL,
                 image_url TEXT NOT NULL,
-                document_url TEXT NOT NULL,
-                FOREIGN KEY (slot_id) REFERENCES slots(id)
+                document_url TEXT NOT NULL
             )
         `);
     }
@@ -55,8 +52,8 @@ export class QuadraModel {
     async criar(data: Quadra): Promise<Quadra> {
         const db = await this.dbPromise;
         const result = await db.run(
-            'INSERT INTO quadras (name, type, address, price, rules, description, time_start, time_end, slot, slot_id, image_url, document_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [data.courtName, data.courtType, data.courtAddress, data.courtPrice, data.courtRules, data.courtDescription, data.selectedTimeStart, data.selectedTimeEnd, data.slot, data.slotId, data.courtImageUrl, data.courtDocumentUrl]
+            'INSERT INTO quadras (name, type, address, price, rules, description, time_start, time_end, slot, image_url, document_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [data.courtName, data.courtType, data.courtAddress, data.courtPrice, data.courtRules, data.courtDescription, data.selectedTimeStart, data.selectedTimeEnd, data.slot, data.courtImageUrl, data.courtDocumentUrl]
         )
         const id = result.lastID;
         if (id) {
