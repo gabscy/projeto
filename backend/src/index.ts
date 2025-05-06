@@ -3,10 +3,11 @@ import { QuadraController } from './controller/QuadraController';
 import { SlotController } from './controller/SlotController';
 import multer from 'multer';
 import { FileController } from './controller/FileController';
-import { BuscarDisponibilidadeDTO } from './dto/QuadraDTO';
+import { BuscarDisponibilidadeDTO, editarUsuarioDTO } from './dto/QuadraDTO';
 import { ReservaController } from './controller/ReservaController';
 import { PagamentoController } from './controller/PagamentoController';
 import dotenv from "dotenv";
+import { UserController } from './controller/UserController';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ const slotController = new SlotController();
 const fileController = new FileController();
 const reservaController = new ReservaController();
 const pagamentoController = new PagamentoController();
+const userController = new UserController();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -91,6 +93,21 @@ app.get('/buscar-quadras', async (req: Request, res: Response) => {
         res.status(200).json({ quadras })
     } catch (error: any) {
         console.error("Não foi possível filtrar quadras")
+        res.status(400).json({ message: error.message })
+    }
+})
+
+app.put("/user/:id", async (req: Request, res: Response) => {
+    try {
+        const dados: editarUsuarioDTO = {
+            id: req.params.id,
+            ...req.body
+        }
+
+        const user = await userController.editarConta(dados)
+        res.status(200).json({ user })
+    } catch (error: any) {
+        console.error("Não foi possível atualizar os dados da sua conta")
         res.status(400).json({ message: error.message })
     }
 })

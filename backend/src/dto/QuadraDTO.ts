@@ -49,3 +49,10 @@ export interface cadastrarSlotDTO {
     slot: number,
     slots: Slot[],
 }
+
+export interface editarUsuarioDTO {
+    id: string,
+    username?: string,
+    cidade?: string,
+    estado?: string,
+}
