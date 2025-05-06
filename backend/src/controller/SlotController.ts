@@ -1,4 +1,4 @@
-import { cadastrarSlotDTO } from "../dto/QuadraDTO";
+import { BuscarDisponibilidadeDTO, cadastrarSlotDTO } from "../dto/QuadraDTO";
 import { Slot, SlotModel } from "../models/SlotModel";
 
 export class SlotController {
@@ -62,5 +62,11 @@ export class SlotController {
             console.error("Erro ao criar slot", error);
             throw new Error("Erro ao criar slot");
         }
+    }
+
+    async buscarDisponibilidade(dados: BuscarDisponibilidadeDTO): Promise<Slot[]> {
+        const horariosReservas = await this.slotModel.buscarSlotsDisponiveis(dados)
+    
+        return horariosReservas
     }
 }

@@ -32,14 +32,4 @@ export class QuadraController {
             throw new Error("Erro ao cadastrar quadra");
         }
     }
-
-    async buscarDisponibilidade(dados: BuscarDisponibilidadeDTO): Promise<disponibilidadeDTO> {
-        const horariosReservas = await this.quadraModel.pegarReservas(dados)
-        const horarioFuncionamento = await this.quadraModel.pegarHorarioFuncionamento(dados.quadraId)
-        
-        return {
-            quadra_info: horarioFuncionamento,
-            reservas: horariosReservas
-        }
-    }
 }

@@ -36,14 +36,14 @@ app.post('/quadra', upload.fields([
         
         const novaQuadra = await quadraController.cadastrarQuadra({...req.body, courtImageUrl, courtDocumentUrl});
 
-        const slotId = await slotController.cadastrarSlot({
+        await slotController.cadastrarSlot({
             quadra_id: novaQuadra.id!,
             horario_inicio: novaQuadra.selectedTimeStart,
             horario_fim: novaQuadra.selectedTimeEnd,
             dias_funcionamento: novaQuadra.selectedDays,
             slot: novaQuadra.slot,
         })
-        
+
         res.status(201).json(novaQuadra);
     } catch (error: any) {
         console.error("Erro ao criar quadra", error);
@@ -58,8 +58,9 @@ app.get('/disponibilidade-quadra', async (req: Request, res: Response) => {
             quadraId: req.query.quadraId as string,
         };
 
-        const disponibilidade = await quadraController.buscarDisponibilidade(dados)
-        res.status(201).json(disponibilidade);
+        const slotsDisponiveis = await slotController.buscarDisponibilidade(dados)
+
+        res.status(201).json(slotsDisponiveis);
     } catch (error: any) {
         console.error("Não foi possível buscar a disponibilidade da quadra")
         res.status(400).json({ message: error.message })

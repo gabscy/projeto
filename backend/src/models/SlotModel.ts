@@ -1,6 +1,6 @@
 import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
-import { cadastrarSlotDTO } from '../dto/QuadraDTO';
+import { BuscarDisponibilidadeDTO, cadastrarSlotDTO } from '../dto/QuadraDTO';
 
 export interface Slot {
     quadra_id: number;
@@ -58,5 +58,15 @@ export class SlotModel {
     async buscarPorQuadraId(quadraId: number): Promise<Slot | undefined> {
         const db = await this.dbPromise;
         return await db.get('SELECT * FROM slots WHERE quadraId = ?', [quadraId]);
+    }
+
+    async buscarSlotsDisponiveis(data: BuscarDisponibilidadeDTO): Promise<Slot[]> {
+        const db = await this.dbPromise;
+        const query = "SELECT * FROM slots WHERE date = ? AND quadra_id = ?";
+        const values = [data.date, data.quadraId];
+
+        const result = await db.all(query, values) as Slot[];
+          
+        return result
     }
 }
