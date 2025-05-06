@@ -1,6 +1,6 @@
 import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
-import { BuscarDisponibilidadeDTO, cadastrarSlotDTO } from '../dto/QuadraDTO';
+import { BuscarDisponibilidadeDTO } from '../dto/QuadraDTO';
 
 export interface Slot {
     quadra_id: number;
