@@ -13,9 +13,8 @@ export class ReservaController {
         const dadosReserva: Reserva = {
             quadraId: dados.quadraId,
             dataReserva: dados.dataReserva,
-            horarioFim: dados.horarioFim,
-            horarioInicio: dados.horarioInicio,
             nomeCapitao: dados.nomeCapitao,
+            slotId: dados.slotId
         }
         const result = await this.ReservaModel.criar(dadosReserva)
         return result.id!.toString()

@@ -14,9 +14,8 @@ export interface ReservarQuadraDTO {
     quadraId: string;
     dataReserva: string;
     nomeCapitao: string;
-    horarioInicio: string;
-    horarioFim: string;
     cpfCapitao: string;
+    slotId: string;
     valor: string;
     metodoPagamento: string;
     numeroCartao: string;

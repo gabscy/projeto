@@ -8,8 +8,7 @@ export interface Reserva {
     dataReserva: string;
     nomeCapitao: string;
     pagamentoId?: string;
-    horarioInicio: string;
-    horarioFim: string;
+    slotId: string;
 }
 
 export class ReservaModel {
@@ -30,11 +29,11 @@ export class ReservaModel {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 quadra_id TEXT NOT NULL,
                 data TEXT NOT NULL,
-                horario_inicio TEXT NOT NULL,
-                horario_fim REAL NOT NULL,
                 pagamento_id TEXT,
+                slot_id TEXT NOT NULL UNIQUE,
                 FOREIGN KEY (quadra_id) REFERENCES quadras(id)
                 FOREIGN KEY (pagamento_id) REFERENCES pagamentos(id)
+                FOREIGN KEY (slot_id) REFERENCES slots(id)
             )
         `);
     }
@@ -42,8 +41,8 @@ export class ReservaModel {
     async criar(data: Reserva): Promise<Reserva> {
         const db = await this.dbPromise;
         const result = await db.run(
-            'INSERT INTO reservas (quadra_id, data, horario_inicio, horario_fim, pagamento_id) VALUES (?,?,?,?,?)',
-            [data.quadraId, data.dataReserva, data.horarioInicio, data.horarioFim, data.pagamentoId]
+            'INSERT INTO reservas (quadra_id, data, pagamento_id, slot_id) VALUES (?,?,?,?)',
+            [data.quadraId, data.dataReserva, data.pagamentoId, data.slotId]
         )
         const id = result.lastID;
         if (id) {
