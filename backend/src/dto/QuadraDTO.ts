@@ -30,11 +30,6 @@ export interface AtualizarPagamentoReservaDTO {
     pagamento_id: string;
 }
 
-export interface PegarReservasDTO {
-    date: string,
-    quadraId: string,
-}
-
 export interface PegarHorarioFuncionamentoDTO {
     horario_inicio: string, 
     horario_fim: string, 
