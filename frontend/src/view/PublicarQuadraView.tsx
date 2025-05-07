@@ -16,11 +16,14 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, ChevronsUpDown } from 'lucide-react';
 
 function PublicarQuadraView() {
+  //tempo de funcionamento
   const [selectedTimeStart, setSelectedTimeStart] = useState<Date | undefined>(undefined);
   const [selectedTimeEnd, setSelectedTimeEnd] = useState<Date | undefined>(undefined);
   const [isPopoverOpenStart, setIsPopoverOpenStart] = useState(false);
   const [isPopoverOpenEnd, setIsPopoverOpenEnd] = useState(false);
   const [timeOptions, setTimeOptions] = useState<Date[]>([]);
+
+  //informacoes da quadra
   const [courtName, setCourtName] = useState('');
   const [opencourtType, setOpenCourtType] = useState(false)
   const [courtType, setCourtType] = useState("")
@@ -38,17 +41,17 @@ function PublicarQuadraView() {
   const [courtPrice, setCourtPrice] = useState('')
   const [openCity, setOpenCity] = useState(false)
 
+  // Estados para validação do formulário
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isFormValid, setIsFormValid] = useState(false);
 
 
+    // Gera opções de hora com base em um horário de início 
   const generateTimeOptions = (startTime?: Date) => {
     const times = [];
     const now = new Date();
-    // Start from 00:00 today
     let currentTime = setMinutes(setHours(now, 0), 0);
 
-    // If startTime is provided, start from that time
     if (startTime) {
         currentTime = new Date(startTime);
         currentTime = setMinutes(setHours(currentTime, currentTime.getHours()), 0);
@@ -62,42 +65,48 @@ function PublicarQuadraView() {
     return times;
   };
 
-  // Initialize time options on component mount
+  // Inicializa as opções de hora ao montar o componente
   useEffect(() => {
       setTimeOptions(generateTimeOptions());
   }, []);
 
-  // Update available end times when start time changes
+  useEffect(() => {
+    console.log(courtCEP);
+  }, [courtCEP]);
+
+   // Atualiza as opções de hora de término quando o horário de início muda
   useEffect(() => {
       if (selectedTimeStart) {
           const nextHour = setMinutes(setHours(selectedTimeStart, selectedTimeStart.getHours() + 1), 0);
-          setTimeOptions(generateTimeOptions(nextHour)); // Pass start time to generateTimeOptions
+          setTimeOptions(generateTimeOptions(nextHour)); 
       } else {
           setTimeOptions(generateTimeOptions());
       }
   }, [selectedTimeStart]);
 
 
-
+   // Define o horário de início 
   const handleTimeSelectStart = useCallback((time: Date) => {
     setSelectedTimeStart(time);
-    setSelectedTimeEnd(undefined); // Reset end time when start time changes
+    setSelectedTimeEnd(undefined); 
     setIsPopoverOpenStart(false);
   }, []);
 
+  // Define o horário de fim
   const handleTimeSelectEnd = useCallback((time: Date) => {
       setSelectedTimeEnd(time);
       setIsPopoverOpenEnd(false);
   }, []);
 
+  // Filtra as opções de horário de término válidas (após o horário de início)
   const getValidEndTimeOptions = () => {
-      if (!selectedTimeStart) return generateTimeOptions(); // If no start time, show all
-
+      if (!selectedTimeStart) return generateTimeOptions(); 
       return timeOptions.filter(optionTime => isAfter(optionTime, selectedTimeStart));
   };
 
   const validEndTimeOptions = getValidEndTimeOptions();
 
+  // Estado para os dias da semana selecionados
   const [selectedDays, setSelectedDays] = useState<Record<string, boolean>>({
     monday: false,
     tuesday: false,
@@ -108,12 +117,24 @@ function PublicarQuadraView() {
     sunday: false,
   });
 
+  // Atualiza o estado do dia da semana selecionado ao clicar no checkbox
   const handleCheckboxClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const { id } = event.currentTarget;
     setSelectedDays((prev) => ({
       ...prev,
-      [id]: !prev[id], // Toggle the selected state
+      [id]: !prev[id], 
     }));
+  };
+
+  //Atualiza Cep da quadra
+  const handleCEPChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value.replace(/[^0-9]/g, '');
+    event.target.value = newValue
+    if(event.target.value.length ==8){
+      setCourtCEP(newValue);
+
+    }
+
   };
 
   const handleCourtImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -128,22 +149,19 @@ function PublicarQuadraView() {
     console.log('Selected Image:', file);
   };
 
+   // Valida o formulário sempre que um campo relevante muda
   useEffect(() => {
     validateForm();
    }, [courtName, courtType, courtAddress, courtState, courtDescription, courtRules, selectedDays, selectedTimeStart, selectedTimeEnd, slot, courtDocument, courtImage]);
 
 
-  useEffect(() => {
-    console.log(isFormValid)
-  }, [isFormValid]);
-
-
+  // Função para validar o formulário
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
     let isValid = true;
 
     if (!courtName.trim()) {
-      errors.courtName = "Por favor, insira o nome da quadra.";
+      errors.courtName = "Por favor, digite o nome da quadra.";
       isValid = false;
     }
     if (!courtType) {
@@ -151,18 +169,24 @@ function PublicarQuadraView() {
       isValid = false;
     }
     if (!courtAddress.trim()) {
-      errors.courtAddress = "Por favor, insira o endereço da quadra.";
+      errors.courtAddress = "Por favor, digite o endereço da quadra.";
       isValid = false;
     }
     if (!courtState) {
-      errors.courtState = "Por favor, selecione o estado do tribunal.";
+      errors.courtState = "Por favor, selecione um estado.";
       isValid = false;
+    }
+    if(!courtCity){
+      errors.courtCity = "Por favor, indique a cidade da quadra"
+      isValid= false;
     }
 
     if (!courtCEP) {
-      errors.slot = "Por favor, digite o CEP.";
+      errors.courtCEP = "Por favor, digite o CEP da quadra.";
       isValid = false;
+      console.log(courtCEP)
     }
+
     if (!courtDescription.trim()) {
       errors.courtDescription = "Por favor, insira a descrição da quadra.";
       isValid = false;
@@ -190,7 +214,7 @@ function PublicarQuadraView() {
     }
     
     if (!courtPrice) {
-      errors.slot = "Por favor, digite o Preco.";
+      errors.courtPrice = "Por favor, digite o preço da reserva.";
       isValid = false;
     }
 
@@ -208,8 +232,29 @@ function PublicarQuadraView() {
  
   };
 
+    // Envia os dados do formulário para o servidor
   const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    try {
+      // Faz uma requisição para um serviço de busca de CEP
+      const res = await fetch(`https://viacep.com.br/ws/${courtCEP}/json/`);
+      const data = await res.json();
+  
+      // Verifica se houve algum erro na requisição
+      if (data.erro) {
+        console.log("nao encontrado");
+        setIsFormValid(false)
+      }
+  
+      // Retorna a cidade encontrada
+      console.log(data)
+  
+    } catch (error) {
+      console.error("Erro ao buscar o CEP:", error);
+      setIsFormValid(false)
+      
+    }
 
     validateForm();
 
@@ -227,25 +272,26 @@ function PublicarQuadraView() {
       formData.append("selectedTimeStart", selectedTimeStart?.getHours().toString() as string);
       formData.append("selectedTimeEnd", selectedTimeEnd?.getHours().toString() as string);
       formData.append("slot", slot);
-      formData.append("courtPrice", courtPrice)
-
-      
+      formData.append("courtPrice", courtPrice)     
       if (courtImage) {
-
         formData.append('courtImage', courtImage);
       }
       if (courtDocument) {
         formData.append('courtDocument', courtDocument);
       }
   
-      const response = await fetch('http://localhost:3000/quadra', {
-        method: 'POST',
-        body: formData, // Envia o FormData diretamente
-      });
+      //publicar dados
+      try{
+        const response = await fetch('http://localhost:3000/quadra', {
+          method: 'POST',
+          body: formData,
+  
+        });
 
-      console.log(response.body);
-
-
+      }catch(error){
+        console.log(error)
+      }
+    
     } else {
       console.log("Formulário inválido. Por favor, corrija os erros.");
     }
@@ -281,14 +327,19 @@ function PublicarQuadraView() {
 
       <main className='max-w-4xl mx-auto py-8'>
         <form action="" onSubmit={(e) => handleSubmitForm(e)}>
-          <div className='flex flex-col gap-6'> 
-            <div className='grid gap-2'>
-              <Label>Nome da quadra</Label>
-              <Input
-                onChange={(e) => setCourtName(e.target.value)}
-              />
-            </div>
+          <div className='flex flex-col gap-8'> 
 
+            <div>
+              <div className='grid gap-2'>
+                <Label>Nome da quadra</Label>
+                <Input
+                  onChange={(e) => setCourtName(e.target.value)}
+                />
+              </div>
+              {formErrors.courtName && <p className="text-left text-sm text-red-500">{formErrors.courtName}</p>}
+            </div>
+            
+          
             <div className='grid gap-2'>
               <Label>Tipo de quadra</Label>
               <Popover open={opencourtType} onOpenChange={setOpenCourtType}>
@@ -334,6 +385,7 @@ function PublicarQuadraView() {
                   </Command>
                 </PopoverContent>
               </Popover>
+              {formErrors.courtType && <p className="text-left text-sm text-red-500">{formErrors.courtType}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -341,9 +393,10 @@ function PublicarQuadraView() {
               <Input
                 onChange={(e) => setCourtAddress(e.target.value)}
               />
+                {formErrors.courtAddress && <p className="text-left text-sm text-red-500">{formErrors.courtAddress}</p>}
             </div>
             
-            <div className='flex flex-row gap-10'>
+            <div className='flex flex-row flex-wrap gap-10'>
               <div className="flex items-center space-x-4">
                 <Label>Estado</Label>
                 <Popover open={openState} onOpenChange={setOpenState}>
@@ -356,7 +409,7 @@ function PublicarQuadraView() {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 w-40" side="right" align="start">
+                  <PopoverContent className="p-0 w-40"  align="start">
                     <Command>
                       <CommandInput placeholder="Buscar estado..." />
                       <CommandList>
@@ -381,6 +434,7 @@ function PublicarQuadraView() {
                     </Command>
                   </PopoverContent>
                 </Popover>
+                {formErrors.courtState && <p className="text-sm text-red-500">{formErrors.courtState}</p>}
             </div>
             
             <div className="flex items-center space-x-4">
@@ -395,7 +449,7 @@ function PublicarQuadraView() {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0 w-80" side="right" align="start">
+                <PopoverContent className="p-0 w-80" align="start">
                   <Command>
                     <CommandInput placeholder="Buscar cidade..." />
                     <CommandList>
@@ -425,7 +479,8 @@ function PublicarQuadraView() {
             
             <div className='flex gap-4'>
               <Label>CEP</Label>
-              <Input type='number' onChange={(e) => {setCourtCEP(e.target.value)}}/>
+              <Input   min="0" maxLength={8} onChange={(e) => {handleCEPChange(e)}}/>
+              {formErrors.courtCEP && <p className="text-sm text-red-500">{formErrors.courtCEP}</p>}
             </div>
 
           </div>
@@ -437,6 +492,7 @@ function PublicarQuadraView() {
                 value={courtRules}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCourtRules(e.target.value)}
               />
+               {formErrors.courtRules && <p className="text-sm text-left text-red-500">{formErrors.courtRules}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -445,6 +501,7 @@ function PublicarQuadraView() {
                 value={courtDescription}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCourtDescription(e.target.value)}
               />
+               {formErrors.courtDescription && <p className="text-sm text-left text-red-500">{formErrors.courtDescription}</p>}
             </div>
 
             <div className='grid gap-3'>
@@ -485,11 +542,13 @@ function PublicarQuadraView() {
                   <Label htmlFor="domingo">Domingo</Label>
                 </div>
               </div>
+              {formErrors.selectedDays && <p className="text-left text-sm text-red-500">{formErrors.selectedDays}</p>}
             </div>
 
             <div className='grid gap-2'>
               <Label>Horário de funcionamento</Label>
               <div className='flex gap-2'>
+              
                 <Popover open={isPopoverOpenStart} onOpenChange={setIsPopoverOpenStart}>
                   <PopoverTrigger asChild>
                       <Button
@@ -500,7 +559,7 @@ function PublicarQuadraView() {
                           )}
                       >
                           <FaRegClock className="mr-2 h-4 w-4" />
-                          {selectedTimeStart ? format(selectedTimeStart, "HH:mm") : <span>Horário primeira reserva</span>}
+                          {selectedTimeStart ? format(selectedTimeStart, "HH:mm") : <span>Horário de abertura</span>}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -519,7 +578,6 @@ function PublicarQuadraView() {
                                               isDisabled && "opacity-50 cursor-not-allowed"
                                           )}
                                           style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
-
                                       >
                                           {format(time, "HH:mm")}
                                       </div>
@@ -529,6 +587,7 @@ function PublicarQuadraView() {
                       </ScrollArea>
                   </PopoverContent>
                 </Popover>
+                
                 <Popover open={isPopoverOpenEnd} onOpenChange={setIsPopoverOpenEnd}>
                   <PopoverTrigger asChild>
                       <Button
@@ -541,11 +600,12 @@ function PublicarQuadraView() {
                           disabled={!selectedTimeStart}
                       >
                           <FaRegClock className="mr-2 h-4 w-4" />
-                          {selectedTimeEnd ? format(selectedTimeEnd, "HH:mm") : <span>Horário última reserva</span>}
+                          {selectedTimeEnd ? format(selectedTimeEnd, "HH:mm") : <span>Horário de fechamento</span>}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                       <ScrollArea className="h-72 w-40 rounded-md border">
+                      
                           <div className="p-1">
                               {validEndTimeOptions.map((time, index) => {
                                       const isMidnightOrAfter: boolean = !!selectedTimeStart && ((time.getHours() < selectedTimeStart.getHours() && (time.getHours() != 0 )) || (time.getHours() == selectedTimeStart.getHours()) );
@@ -560,17 +620,18 @@ function PublicarQuadraView() {
                                               isMidnightOrAfter && "opacity-50 cursor-not-allowed"
                                           )}
                                           style={{ cursor: isMidnightOrAfter ? 'not-allowed' : 'pointer' }}
-
                                       >
                                           {format(time, "HH:mm")}
                                       </div>
                                   )
                               })}
                           </div>
+
                       </ScrollArea>
                   </PopoverContent>
                 </Popover>
               </div>
+              {(formErrors.selectedTimeStart || formErrors.selectedTimeEnd) && <p className="text-sm text-left text-red-500">Por favor, escolha o horário de funcionamento da quadra.</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -618,14 +679,17 @@ function PublicarQuadraView() {
                   </Command>
                 </PopoverContent>
               </Popover>
+              {formErrors.slot && <p className="text-sm text-left text-red-500">{formErrors.slot}</p>}
             </div>
 
             <div className='grid gap-2'>
               <Label>Preço da Reserva</Label>
               <Input 
                 type="number"
+                min="0"
                 onChange={(e)=> setCourtPrice(e.target.value)}
               />
+               {formErrors.courtPrice && <p className="text-sm text-left text-red-500">{formErrors.courtPrice}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -634,6 +698,7 @@ function PublicarQuadraView() {
                 type="file"
                 onChange={handleCourtImageChange}
               />
+              {formErrors.courtImage && <p className="text-sm text-left text-red-500">{formErrors.courtImage}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -642,6 +707,7 @@ function PublicarQuadraView() {
                 type="file"
                 onChange={handleCourtDocumentChange}
               />
+                {formErrors.courtDocument&& <p className="text-sm text-left text-red-500">{formErrors.courtDocument}</p>}
             </div>
 
           <Button type='submit' variant={'default'}>Cadastrar Quadra</Button>

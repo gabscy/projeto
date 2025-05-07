@@ -40,7 +40,6 @@ function BuscarQuadrasView() {
         }));
       };
 
-
     const handleMinPriceChange = (value: string) => {
         const numValue = value ? Number(value) : '';
         numValue === "" ?   setMinPrice(numValue) : numValue < 0 ? setMinPrice(0) : setMinPrice(numValue)
@@ -118,6 +117,9 @@ function BuscarQuadrasView() {
                     </div>
                     
                 </div>
+
+                <Separator />
+                    
 
                 <Separator />
 
