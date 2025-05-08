@@ -44,4 +44,14 @@ export class QuadraController {
             throw new Error("Não foi possível filtrar quadras")
         }
     }
+
+    async buscarInfoQuadra(id: string): Promise<Quadra> {
+        try {
+            const quadraInfo = await this.quadraModel.buscarQuadraInfo(id);
+            return quadraInfo;
+        } catch (error: any) {
+            console.error("Erro ao encontrar dados da quadra")
+            throw new Error("Não foi possível retornar os dados da quadra")
+        }
+    }
 }

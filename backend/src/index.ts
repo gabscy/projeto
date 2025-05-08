@@ -12,7 +12,7 @@ import cors from "cors";
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const port = 3000;
 const quadraController = new QuadraController();
 const slotController = new SlotController();
@@ -111,6 +111,16 @@ app.put("/user/:id", async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error("Não foi possível atualizar os dados da sua conta")
         res.status(400).json({ message: error.message })
+    }
+})
+
+app.get('/quadra/:id', async (req: Request, res: Response) => {
+    try {
+        const quadra = await quadraController.buscarInfoQuadra(req.params.id)
+        res.status(200).json(quadra)
+    } catch (error: any) {
+        console.error("Não foi possível encontrar os dados da quadra")
+        res.status(404).json({ message: error.message })
     }
 })
 
