@@ -217,7 +217,7 @@ function BuscarQuadrasView() {
                         <ScrollArea className="h-200 w-full -mt-4">
                             {data.quadras.map((quadra: any) => (
                                  <Card key={quadra.id} className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                                    <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
+                                    <img  className="rounded h-full max-w-50" src={quadra.image_url} alt="Imagem de Quadra"/>
                                     <div className='w-full h-full flex flex-col gap-4'>
                                         <Label className='font-bold text-lg'>{quadra.name}</Label>
                                         <div className='flex flex-row gap-2'>
