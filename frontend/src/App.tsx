@@ -3,15 +3,20 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PublicarQuadraView from './view/PublicarQuadraView';
 import BuscarQuadrasView from './view/BuscarQuadrasView';
 import ReservarQuadraView from './view/ReservarQuadraView'
+import { QueryClient, QueryClientProvider} from "@tanstack/react-query"
+
+const queryClient = new QueryClient()
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<BuscarQuadrasView />} />
-        <Route path="/publicar-quadra" element={<PublicarQuadraView />} />
-        <Route path="/reservar-quadra" element={<ReservarQuadraView />} />
-      </Routes>
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route path="/" element={<BuscarQuadrasView />} />
+          <Route path="/publicar-quadra" element={<PublicarQuadraView />} />
+          <Route path="/reservar-quadra" element={<ReservarQuadraView />} />
+        </Routes>
+      </QueryClientProvider>
     </BrowserRouter>
   )
 }
