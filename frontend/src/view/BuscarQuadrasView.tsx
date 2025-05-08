@@ -1,5 +1,5 @@
 import '../App.css'
-import { useState } from 'react';
+import { useEffect, useState} from 'react';
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '../components/ui/navigation-menu';
 import { TbSoccerField } from "react-icons/tb"
@@ -13,9 +13,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge"
 import { FaStar } from "react-icons/fa";
 import { Button } from '../components/ui/button';
-import { Link } from 'react-router-dom';
+import { data, Link } from 'react-router-dom';
 
-
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 
 function BuscarQuadrasView() {
@@ -51,6 +51,28 @@ function BuscarQuadrasView() {
     };
 
 
+    
+    
+
+    // Define the fetch function
+    const fetchQuadras = async () => {
+        const response = await fetch('http://localhost:3000/buscar-quadras');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json()
+
+    }
+
+    const { data, isLoading } = useQuery({
+        queryKey: ["quadras"],
+        queryFn: fetchQuadras,
+    });
+
+    useEffect(()=> {
+        console.log(data)
+    },[data])
 
   return (
     <>
@@ -84,10 +106,14 @@ function BuscarQuadrasView() {
             <div className='flex flex-col gap-2'>
                 <h1 className='text-6xl font-bold'>Encontre quadras</h1>
                 <h6 className='text-gray-700'>Buscar quadras perto de você</h6>
+  
             </div>
         </section>
 
+        
+
         <section className='max-w-6xl mx-auto grid grid-cols-10 grid-rows-10 py-8 gap-2'>
+            
             <Card className='col-span-3 row-span-7 flex flex-col px-6 '>
                 <div>
                     <h4 className='font-bold'>Filtros</h4>
@@ -165,8 +191,8 @@ function BuscarQuadrasView() {
             </div>
 
             <div className='col-span-7 col-start-4 row-start-2 row-span-10 '>
-                <ScrollArea className="h-200 w-full ">
-                    <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
+               
+                    {/* <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
                         <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
                         <div className='w-full h-full flex flex-col gap-4'>
                             <Label className='font-bold text-lg'> Título Quadra</Label>
@@ -186,11 +212,40 @@ function BuscarQuadrasView() {
                                     <Button variant="outline">Reservar</Button>
                                 </Link>  
                         </div>
-                    </Card>
-                  
-                </ScrollArea> 
+                    </Card> */}
+                    {data && data.quadras ? (
+                        <ScrollArea className="h-200 w-full -mt-4">
+                            {data.quadras.map((quadra: any) => (
+                                 <Card key={quadra.id} className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
+                                    <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
+                                    <div className='w-full h-full flex flex-col gap-4'>
+                                        <Label className='font-bold text-lg'>{quadra.name}</Label>
+                                        <div className='flex flex-row gap-2'>
+                                            <Label >4.2</Label>
+                                            <FaStar />
+                                        </div>
+                                        <Label className='font-normal'>{quadra.address}</Label>
+                                        <div className='flex flex-row align-center gap-2 mt-4'>
+                                            <Badge variant="outline">{quadra.type}</Badge>
+                                        </div>
+                                    </div>
+            
+                                    <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
+                                            <Label>{quadra.price} R$ - {quadra.slot} min</Label>
+                                            <Link to={`/reservar-quadra`}>
+                                                <Button variant="outline">Reservar</Button>
+                                            </Link>  
+                                    </div>
+                                </Card>
+                            ))}
+                        </ScrollArea>
+                    ) : (
+                        <div>{/* Mensagem caso 'data' ou 'data.quadras' sejam null/undefined após o loading */}
+                        {!isLoading  && <p>Nenhuma quadra encontrada.</p>}
+                        </div>
+                    )}
+                            
             </div>
-
         </section>
     </>
   )
