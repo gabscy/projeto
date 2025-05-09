@@ -56,16 +56,17 @@ export class QuadraModel {
     }
 
     async criar(data: Quadra): Promise<Quadra> {
-        const db = await this.dbPromise;
-        const result = await db.run(
+        try {
+            const db = await this.dbPromise;
+            const result = await db.run(
             'INSERT INTO quadras (name, type, address, city, state, cep, price, rules, description, time_start, time_end, slot, image_url, document_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [data.courtName, data.courtType, data.courtAddress, data.courtCity, data.courtState, data.courtCEP, data.courtPrice, data.courtRules, data.courtDescription, data.selectedTimeStart, data.selectedTimeEnd, data.slot, data.courtImageUrl, data.courtDocumentUrl]
-        )
-        const id = result.lastID;
-        if (id) {
+            )
+            const id = result.lastID;
             return {id, ...data}
-        }
-        throw new Error('Erro ao inserir quadra')
+        } catch (error: any) {
+            throw new Error('Erro ao criar quadra')
+        }    
     }
 
     async pegarHorarioFuncionamento(quadraId: string): Promise<PegarHorarioFuncionamentoDTO>{
