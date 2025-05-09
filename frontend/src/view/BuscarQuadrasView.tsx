@@ -157,9 +157,9 @@ function BuscarQuadrasView() {
         <section className='max-w-6xl mx-auto grid grid-cols-10 grid-rows-10 py-8 gap-2'>
             
             <Card className='col-span-3 row-span-7 flex flex-col px-6 '>
-                <div className='flex justify-between items-center'>
+                <div >
                     <h4 className='font-bold'>Filtros</h4>
-                    <Button onClick={atualizarFiltros}>Atualizar</Button>
+
                 </div>
 
                 <Separator />
