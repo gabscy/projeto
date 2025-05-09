@@ -1,6 +1,5 @@
 import { QuadraModel } from "../../models/QuadraModel";
 import { open, Database } from "sqlite";
-import sqlite3 from "sqlite3";
 
 jest.mock("sqlite", () => ({
     open: jest.fn(() =>
