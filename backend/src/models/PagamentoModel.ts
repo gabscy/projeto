@@ -42,16 +42,17 @@ export class PagamentoModel {
         `);
     }
 
-    async criar(data: Pagamento): Promise<Pagamento> {
-        const db = await this.dbPromise;
-        const result = await db.run(
-            'INSERT INTO pagamentos (quadra_id, cpf_capitao, valor, metodo_pagamento, numero_cartao, cvv, vencimento, nome_cartao) VALUES (?,?,?,?,?,?,?,?)',
-            [data.quadraId, data.cpfCapitao, data.valor, data.metodoPagamento, data.numeroCartao, data.cvv, data.vencimento, data.nomeCartao]
-        )
-        const id = result.lastID;
-        if (id) {
+    async criar(data: Pagamento): Promise<Pagamento | Error> {
+        try {
+            const db = await this.dbPromise;
+            const result = await db.run(
+                'INSERT INTO pagamentos (quadra_id, cpf_capitao, valor, metodo_pagamento, numero_cartao, cvv, vencimento, nome_cartao) VALUES (?,?,?,?,?,?,?,?)',
+                [data.quadraId, data.cpfCapitao, data.valor, data.metodoPagamento, data.numeroCartao, data.cvv, data.vencimento, data.nomeCartao]
+            )
+            const id = result.lastID;
             return {id, ...data}
+        } catch (error: any) {
+            throw new Error('Erro ao criar Pagamento')
         }
-        throw new Error('Erro ao criar Pagamento')
     }
 }
