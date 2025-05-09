@@ -88,4 +88,13 @@ export class QuadraModel {
         }
         throw new Error("Erro ao buscar quadra no banco de dados")
     }
+
+    async buscarQuadraInfo(id: string): Promise<Quadra> {
+        const db = await this.dbPromise;
+        const query = "SELECT * FROM quadras WHERE id = ?"
+        const values = [id]
+
+        const quadraInfo = await db.all(query, values) as Quadra;
+        return quadraInfo;
+    }
 }
