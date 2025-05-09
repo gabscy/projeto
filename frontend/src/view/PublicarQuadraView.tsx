@@ -57,7 +57,7 @@ function PublicarQuadraView() {
         currentTime = setMinutes(setHours(currentTime, currentTime.getHours()), 0);
     }
 
-    for (let i = 0; i < 24; i++) { // Generate times for a 24-hour period, or until 23:00
+    for (let i = 0; i < 24; i++) { 
         times.push(currentTime);
         currentTime = setHours(currentTime, currentTime.getHours() + 1); // Increment by 1 hour
 
@@ -132,9 +132,7 @@ function PublicarQuadraView() {
     event.target.value = newValue
     if(event.target.value.length ==8){
       setCourtCEP(newValue);
-
     }
-
   };
 
   const handleCourtImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -731,12 +729,6 @@ const estados: UF[] = [
   { value: "SP", label: "SP" }
 ];
 
-interface ComboboxEstadosProps {
-  courtState: UF | null;
-  setCourtState: React.Dispatch<React.SetStateAction<UF | null>>;
-  openState: boolean;
-  setOpenState: React.Dispatch<React.SetStateAction<boolean>>;
-}
 
 
 
