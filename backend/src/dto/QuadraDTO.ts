@@ -22,11 +22,11 @@ export interface ReservarQuadraDTO {
     cvv: string;
     vencimento: string;
     nomeCartao: string;
-    reservaId?: string;
+    reservaId?: number;
 }
 
 export interface AtualizarPagamentoReservaDTO {
-    id: string;
+    id: number;
     pagamento_id: string;
 }
 
