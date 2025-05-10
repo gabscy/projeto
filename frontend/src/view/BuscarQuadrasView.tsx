@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { FaStar } from "react-icons/fa";
 import { Button } from '../components/ui/button';
 import { data, Link } from 'react-router-dom';
+import { FadeLoader } from "react-spinners"
+
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -27,16 +29,18 @@ function BuscarQuadrasView() {
         volei: true,
     });
 
-
+    const [courtCEP, setCourtCEP] = useState('')
     const [minPrice, setMinPrice] = useState<number | string>('');
     const [maxPrice, setMaxPrice] = useState<number | string>('');
+    const [filteredData, setFilteredData] = useState([]);
 
+   
 
     const handleCheckboxClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         const { id } = event.currentTarget;
         setSelectedTypes((prev) => ({
           ...prev,
-          [id]: !prev[id], // Toggle the selected state
+          [id]: !prev[id], 
         }));
       };
 
@@ -50,10 +54,16 @@ function BuscarQuadrasView() {
         numValue === "" ?   setMaxPrice(numValue) : numValue < 0 ? setMaxPrice(0) : setMaxPrice(numValue)
     };
 
-
+    //Atualiza Cep da quadra
+    const handleCEPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value.replace(/[^0-9]/g, '');
+        event.target.value = newValue
+        if(event.target.value.length ==8){
+            setCourtCEP(newValue);
+        }
+    };
     
-    
-
+   
     // Define the fetch function
     const fetchQuadras = async () => {
         const response = await fetch('http://localhost:3000/buscar-quadras');
@@ -65,14 +75,46 @@ function BuscarQuadrasView() {
 
     }
 
-    const { data, isLoading } = useQuery({
+    const { data, isFetching, refetch , error} = useQuery({
         queryKey: ["quadras"],
         queryFn: fetchQuadras,
     });
 
-    useEffect(()=> {
-        console.log(data)
-    },[data])
+    if(error){
+        alert("Something went wrong")
+    }
+
+    const atualizarFiltros = (allQuadras: any) => {
+        if (!allQuadras) {
+            setFilteredData([]);
+            return;
+        }
+        const filtered = allQuadras.filter((quadra: any) => {
+        // Filter selected types
+        const isTypeSelected = selectedTypes[quadra.type] === true;
+
+        // Filter  min price
+        const priceAboveMin =
+            minPrice === '' || (quadra.price !== undefined && Number(quadra.price) >= Number(minPrice));
+
+        // Filter  max price
+        const priceBelowMax =
+            maxPrice === '' || (quadra.price !== undefined && Number(quadra.price) <= Number(maxPrice));
+
+        return isTypeSelected && priceAboveMin && priceBelowMax;
+    });
+
+    setFilteredData(filtered);
+
+    }
+
+    useEffect(() => {
+        if (data) {
+            atualizarFiltros(data.quadras);
+        }
+     }, [selectedTypes, courtCEP, minPrice, maxPrice, data]);
+    
+
 
   return (
     <>
@@ -115,9 +157,11 @@ function BuscarQuadrasView() {
         <section className='max-w-6xl mx-auto grid grid-cols-10 grid-rows-10 py-8 gap-2'>
             
             <Card className='col-span-3 row-span-7 flex flex-col px-6 '>
-                <div>
+                <div >
                     <h4 className='font-bold'>Filtros</h4>
+
                 </div>
+
                 <Separator />
 
                 <Label className='font-bold'>Preço</Label>
@@ -127,6 +171,7 @@ function BuscarQuadrasView() {
                         <Input 
                             type='number' 
                             placeholder='Mínimo'
+                            min={0}
                             value={minPrice}
                             onChange={(e) => handleMinPriceChange(e.target.value)}
                         />
@@ -138,14 +183,19 @@ function BuscarQuadrasView() {
                             type='number' 
                             placeholder='Máximo' 
                             value={maxPrice}
+                            min={0}
                             onChange={(e) => handleMaxPriceChange(e.target.value)} 
                         />
                     </div>
-                    
                 </div>
 
                 <Separator />
-                    
+                
+                <Label className='font-bold'>Localização</Label>
+                <div className='flex gap-4'>
+                    <Label>Digite seu CEP</Label>
+                    <Input className='w-25'  min="0" maxLength={8} onChange={(e) => {handleCEPChange(e)}}/>
+                </div>
 
                 <Separator />
 
@@ -192,30 +242,9 @@ function BuscarQuadrasView() {
 
             <div className='col-span-7 col-start-4 row-start-2 row-span-10 '>
                
-                    {/* <Card className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
-                        <img  className="rounded h-full max-w-50" src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
-                        <div className='w-full h-full flex flex-col gap-4'>
-                            <Label className='font-bold text-lg'> Título Quadra</Label>
-                            <div className='flex flex-row gap-2'>
-                                <Label >4.2</Label>
-                                <FaStar />
-                            </div>
-                            <Label className='font-normal'>Rua Jararaquara Pereira 142</Label>
-                            <div className='flex flex-row align-center gap-2 mt-4'>
-                                <Badge variant="outline">Futebol</Badge>
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
-                                <Label>45 R$ - 1 hora</Label>
-                                <Link to={`/reservar-quadra`}>
-                                    <Button variant="outline">Reservar</Button>
-                                </Link>  
-                        </div>
-                    </Card> */}
-                    {data && data.quadras ? (
+                    {!isFetching ? (
                         <ScrollArea className="h-200 w-full -mt-4">
-                            {data.quadras.map((quadra: any) => (
+                            {filteredData.map((quadra: any) => (
                                  <Card key={quadra.id} className='h-50 flex items-center flex-row gap-4 p-4 mb-4'>
                                     <img  className="rounded h-full max-w-50" src={quadra.image_url} alt="Imagem de Quadra"/>
                                     <div className='w-full h-full flex flex-col gap-4'>
@@ -226,7 +255,7 @@ function BuscarQuadrasView() {
                                         </div>
                                         <Label className='font-normal'>{quadra.address}</Label>
                                         <div className='flex flex-row align-center gap-2 mt-4'>
-                                            <Badge variant="outline">{quadra.type}</Badge>
+                                            <Badge variant="outline">{quadra.type.charAt(0).toUpperCase() + quadra.type.slice(1)}</Badge>
                                         </div>
                                     </div>
             
@@ -240,9 +269,10 @@ function BuscarQuadrasView() {
                             ))}
                         </ScrollArea>
                     ) : (
-                        <div>{/* Mensagem caso 'data' ou 'data.quadras' sejam null/undefined após o loading */}
-                        {!isLoading  && <p>Nenhuma quadra encontrada.</p>}
+                        <div className=' mt-20 h-full flex items-start justify-center'>
+                         <FadeLoader/>
                         </div>
+                        
                     )}
                             
             </div>
