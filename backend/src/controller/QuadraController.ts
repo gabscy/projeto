@@ -1,57 +1,56 @@
-import { Quadra, QuadraModel } from "../models/QuadraModel";
+import { Request, Response } from "express";
+import { QuadraService } from "../services/QuadraService";
+import { QuadraRepository } from "../repository/QuadraRepository";
+import { FileService } from "../services/FileService";
+import { SlotService } from "../services/SlotService";
+import { SlotRepository } from "../repository/SlotRepository";
 
 export class QuadraController {
-    private quadraModel: QuadraModel;
+    private service: QuadraService;
 
     constructor() {
-        this.quadraModel = new QuadraModel();
+        const quadraRepository = new QuadraRepository();
+        const slotRepository = new SlotRepository();
+        const slotService = new SlotService(slotRepository);
+        const fileService = new FileService();
+    
+        this.service = new QuadraService(quadraRepository, slotService, fileService);
     }
 
-    async cadastrarQuadra(dados: Quadra): Promise<Quadra> {
-        const novaQuadra: Quadra = {
-            courtName: dados.courtName,
-            courtType: dados.courtType,
-            courtAddress: dados.courtAddress,
-            courtCity: dados.courtCity,
-            courtState: dados.courtState,
-            courtCEP: dados.courtCEP,
-            courtPrice: dados.courtPrice,
-            courtRules: dados.courtRules,
-            courtDescription: dados.courtDescription,
-            selectedDays: dados.selectedDays,
-            selectedTimeStart: dados.selectedTimeStart,
-            selectedTimeEnd: dados.selectedTimeEnd,
-            courtImageUrl: dados.courtImageUrl,
-            courtDocumentUrl: dados.courtDocumentUrl,
-            slot: dados.slot,
-        }
 
+    async cadastrarQuadra(req: Request, res: Response): Promise<void> {
         try {
-            const quadraCriada = await this.quadraModel.criar(novaQuadra);
-            return quadraCriada
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+            const formattedFiles = {
+                courtImage: files["courtImage"] || [], 
+                courtDocument: files["courtDocument"] || [], 
+            };
+
+            const novaQuadra = await this.service.cadastrarQuadra(req.body, formattedFiles);
+
+            res.status(201).json(novaQuadra);
         } catch (error: any) {
-            console.error("Erro ao criar quadra no banco de dados", error);
-            throw new Error("Erro ao cadastrar quadra");
+            res.status(400).json({ erro: error.message });
         }
     }
 
-    async buscarQuadras(): Promise<Quadra[]> {
+
+    async buscarQuadras(req: Request, res: Response): Promise<void> {
         try {
-            const quadras = await this.quadraModel.buscarQuadras();
-            return quadras
+            const quadras = await this.service.buscarQuadras();
+            res.status(200).json(quadras);
         } catch (error: any) {
-            console.error("Não foi possível filtrar quadras ", error)
-            throw new Error("Não foi possível filtrar quadras")
+            res.status(400).json({ erro: error.message });
         }
     }
 
-    async buscarInfoQuadra(id: string): Promise<Quadra> {
+    async buscarInfoQuadra(req: Request, res: Response): Promise<void> {
         try {
-            const quadraInfo = await this.quadraModel.buscarQuadraInfo(id);
-            return quadraInfo;
+            const quadraInfo = await this.service.buscarInfoQuadra(req.params.id);
+            res.status(200).json(quadraInfo);
         } catch (error: any) {
-            console.error("Erro ao encontrar dados da quadra")
-            throw new Error("Não foi possível retornar os dados da quadra")
+            res.status(400).json({ erro: error.message });
         }
     }
 }

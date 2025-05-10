@@ -1,25 +1,13 @@
+import { Request, Response } from "express";
+import { PagamentoService } from "../services/PagamentoService";
+import { PagamentoRepository } from "../repository/PagamentoRepository";
 import { ReservarQuadraDTO } from "../dto/QuadraDTO";
-import { Pagamento, PagamentoModel } from "../models/PagamentoModel";
 
 export class PagamentoController {
-    private PagamentoModel: PagamentoModel;
+    private service: PagamentoService;
 
     constructor() {
-        this.PagamentoModel = new PagamentoModel();
-    }
-
-    async criarPagamento(dados: ReservarQuadraDTO): Promise<string> {
-        const dadosPagamento: Pagamento = {
-            quadraId: dados.quadraId,
-            cpfCapitao: dados.cpfCapitao,
-            cvv: dados.cvv,
-            metodoPagamento: dados.metodoPagamento,
-            nomeCartao: dados.nomeCartao,
-            numeroCartao: dados.numeroCartao,
-            valor: dados.valor,
-            vencimento: dados.vencimento,
-        }
-        const result = await this.PagamentoModel.criar(dadosPagamento)
-        return result.id!.toString()
+        const repository = new PagamentoRepository();
+        this.service = new PagamentoService(repository);
     }
 }

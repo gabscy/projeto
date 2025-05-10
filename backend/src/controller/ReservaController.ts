@@ -1,26 +1,29 @@
-import { AtualizarPagamentoReservaDTO, ReservarQuadraDTO } from "../dto/QuadraDTO";
-import { Pagamento, PagamentoModel } from "../models/PagamentoModel";
-import { Reserva, ReservaModel } from "../models/ReservaModel";
+import { Request, Response } from "express";
+import { ReservaService } from "../services/ReservaService";
+import { ReservaRepository } from "../repository/ReservaRepository";
+import { PagamentoRepository } from "../repository/PagamentoRepository";
+import { PagamentoService } from "../services/PagamentoService";
+import { SlotService } from "../services/SlotService";
+import { SlotRepository } from "../repository/SlotRepository";
 
 export class ReservaController {
-    private ReservaModel: ReservaModel;
+    private service: ReservaService;
 
     constructor() {
-        this.ReservaModel = new ReservaModel();
+        const reservaRepository = new ReservaRepository();
+        const pagamentoRepository = new PagamentoRepository();
+        const pagamentoService = new PagamentoService(pagamentoRepository);
+        const slotRepository = new SlotRepository();
+        const slotService = new SlotService(slotRepository);
+        this.service = new ReservaService(reservaRepository, pagamentoService, slotService);
     }
 
-    async criarReserva(dados: ReservarQuadraDTO): Promise<string> {
-        const dadosReserva: Reserva = {
-            quadraId: dados.quadraId,
-            dataReserva: dados.dataReserva,
-            nomeCapitao: dados.nomeCapitao,
-            slotId: dados.slotId
+    async criarReserva(req: Request, res: Response): Promise<void> {
+        try {
+            const reserva = await this.service.criarReserva(req.body);
+            res.status(201).json(reserva);
+        } catch (error: any) {
+            res.status(400).json({ erro: error.message });
         }
-        const result = await this.ReservaModel.criar(dadosReserva)
-        return result.id!.toString()
-    }
-
-    async atualizarReserva(dados: AtualizarPagamentoReservaDTO) {
-        await this.ReservaModel.atualizar(dados)
     }
 }

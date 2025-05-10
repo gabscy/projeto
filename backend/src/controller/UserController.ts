@@ -1,15 +1,21 @@
-import { editarUsuarioDTO } from "../dto/QuadraDTO";
-import { User, UserModel } from "../models/UserModel";
+import { Request, Response } from "express";
+import { UserService } from "../services/UserService";
+import { UserRepository } from "../repository/UserRepository";
 
 export class UserController {
-    private UserModel: UserModel;
+    private service: UserService;
 
     constructor() {
-        this.UserModel = new UserModel();
+        const repository = new UserRepository();
+        this.service = new UserService(repository);
     }
 
-    async editarConta(dados: editarUsuarioDTO): Promise<Omit<User, 'password' | 'tipo'>> {
-        const user = await this.UserModel.editarConta(dados)
-        return user
+    async editarConta(req: Request, res: Response): Promise<void> {
+        try {
+            const user = await this.service.editarConta(req.body);
+            res.status(200).json(user);
+        } catch (error: any) {
+            res.status(400).json({ erro: error.message });
+        }
     }
 }
