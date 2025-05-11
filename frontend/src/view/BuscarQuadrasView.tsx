@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge"
 import { FaStar } from "react-icons/fa";
 import { Button } from '../components/ui/button';
-import { data, Link } from 'react-router-dom';
+import {  Link } from 'react-router-dom';
 import { FadeLoader } from "react-spinners"
 
 
@@ -70,14 +70,14 @@ function BuscarQuadrasView() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
         return response.json()
-
     }
 
     const { data, isFetching, refetch , error} = useQuery({
         queryKey: ["quadras"],
         queryFn: fetchQuadras,
+        staleTime: 60 * 1000, 
+        retry: 3, 
     });
 
     if(error){
@@ -85,32 +85,33 @@ function BuscarQuadrasView() {
     }
 
     const atualizarFiltros = (allQuadras: any) => {
+        
         if (!allQuadras) {
             setFilteredData([]);
             return;
         }
+
         const filtered = allQuadras.filter((quadra: any) => {
-        // Filter selected types
-        const isTypeSelected = selectedTypes[quadra.type] === true;
+            // Filter selected types
+            const isTypeSelected = selectedTypes[quadra.type] === true;
 
-        // Filter  min price
-        const priceAboveMin =
-            minPrice === '' || (quadra.price !== undefined && Number(quadra.price) >= Number(minPrice));
+            // Filter  min price
+            const priceAboveMin =
+                minPrice === '' || (quadra.price !== undefined && Number(quadra.price) >= Number(minPrice));
 
-        // Filter  max price
-        const priceBelowMax =
-            maxPrice === '' || (quadra.price !== undefined && Number(quadra.price) <= Number(maxPrice));
+            // Filter  max price
+            const priceBelowMax =
+                maxPrice === '' || (quadra.price !== undefined && Number(quadra.price) <= Number(maxPrice));
 
-        return isTypeSelected && priceAboveMin && priceBelowMax;
-    });
+            return isTypeSelected && priceAboveMin && priceBelowMax;
+        });
 
-    setFilteredData(filtered);
-
+        setFilteredData(filtered);
     }
 
     useEffect(() => {
         if (data) {
-            atualizarFiltros(data.quadras);
+            atualizarFiltros(data);
         }
      }, [selectedTypes, courtCEP, minPrice, maxPrice, data]);
     
@@ -255,13 +256,13 @@ function BuscarQuadrasView() {
                                         </div>
                                         <Label className='font-normal'>{quadra.address}</Label>
                                         <div className='flex flex-row align-center gap-2 mt-4'>
-                                            <Badge variant="outline">{quadra.type.charAt(0).toUpperCase() + quadra.type.slice(1)}</Badge>
+                                            <Badge >{quadra.type.charAt(0).toUpperCase() + quadra.type.slice(1)}</Badge>
                                         </div>
                                     </div>
             
                                     <div className='flex flex-col h-full justify-end gap-4 pb-4 pr-2'>
                                             <Label>{quadra.price} R$ - {quadra.slot} min</Label>
-                                            <Link to={`/reservar-quadra`}>
+                                            <Link to={`/detalhes-quadra/${quadra.id}`}>
                                                 <Button variant="outline">Reservar</Button>
                                             </Link>  
                                     </div>

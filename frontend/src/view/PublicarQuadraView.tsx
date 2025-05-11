@@ -8,12 +8,13 @@ import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { cn } from '../lib/utils';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { format, isAfter, isValid, setHours, setMinutes } from 'date-fns';
+import { format, isAfter, setHours, setMinutes } from 'date-fns';
 import { Button } from '../components/ui/button';
 import { FaRegClock } from "react-icons/fa";
 import { Textarea } from '../components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Check, ChevronsUpDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function PublicarQuadraView() {
   //tempo de funcionamento
@@ -44,6 +45,9 @@ function PublicarQuadraView() {
   // Estados para validação do formulário
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isFormValid, setIsFormValid] = useState(false);
+  const [first, setFirst] = useState<Boolean>(true)
+
+  const navigate = useNavigate();
 
 
     // Gera opções de hora com base em um horário de início 
@@ -182,7 +186,7 @@ function PublicarQuadraView() {
     if (!courtCEP) {
       errors.courtCEP = "Por favor, digite o CEP da quadra.";
       isValid = false;
-      console.log(courtCEP)
+
     }
 
     if (!courtDescription.trim()) {
@@ -233,28 +237,9 @@ function PublicarQuadraView() {
     // Envia os dados do formulário para o servidor
   const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFirst(false);
 
-    try {
-      // Faz uma requisição para um serviço de busca de CEP
-      const res = await fetch(`https://viacep.com.br/ws/${courtCEP}/json/`);
-      const data = await res.json();
-  
-      // Verifica se houve algum erro na requisição
-      if (data.erro) {
-        console.log("nao encontrado");
-        setIsFormValid(false)
-      }
-  
-      // Retorna a cidade encontrada
-      console.log(data)
-  
-    } catch (error) {
-      console.error("Erro ao buscar o CEP:", error);
-      setIsFormValid(false)
-      
-    }
-
-    validateForm();
+    // ... (seu código de validação e criação do formData) ...
 
     if (isFormValid) {
       const formData = new FormData();
@@ -263,35 +248,46 @@ function PublicarQuadraView() {
       formData.append("courtAddress", courtAddress);
       formData.append("courtState", courtState?.value || '');
       formData.append("courtCity", courtCity?.value || '');
-      formData.append("courtCEP",courtCEP)
+      formData.append("courtCEP", courtCEP);
       formData.append("courtDescription", courtDescription);
       formData.append("courtRules", courtRules);
       formData.append("selectedDays", JSON.stringify(selectedDays));
       formData.append("selectedTimeStart", selectedTimeStart?.getHours().toString() as string);
       formData.append("selectedTimeEnd", selectedTimeEnd?.getHours().toString() as string);
       formData.append("slot", slot);
-      formData.append("courtPrice", courtPrice)     
+      formData.append("courtPrice", courtPrice);
       if (courtImage) {
         formData.append('courtImage', courtImage);
       }
       if (courtDocument) {
         formData.append('courtDocument', courtDocument);
       }
-  
+
       //publicar dados
-      try{
+      try {
         const response = await fetch('http://localhost:3000/quadra', {
           method: 'POST',
           body: formData,
-  
         });
 
-      }catch(error){
-        console.log(error)
+        // Verifica se a requisição foi bem-sucedida (status 2xx)
+        if (response.ok) {
+          navigate('/'); // Redireciona para a página inicial
+          console.log('Quadra publicada com sucesso!');
+          // Opcional: Você pode mostrar uma mensagem de sucesso ao usuário
+        } else {
+          console.error('Erro ao publicar a quadra:', response.status);
+          // Opcional: Você pode mostrar uma mensagem de erro ao usuário
+        }
+
+      } catch (error) {
+        console.log(error);
+        // Opcional: Você pode mostrar uma mensagem de erro ao usuário
       }
-    
+
     } else {
       console.log("Formulário inválido. Por favor, corrija os erros.");
+      // Opcional: Você pode mostrar uma mensagem de erro ao usuário
     }
   };
 
@@ -334,7 +330,7 @@ function PublicarQuadraView() {
                   onChange={(e) => setCourtName(e.target.value)}
                 />
               </div>
-              {formErrors.courtName && <p className="text-left text-sm text-red-500">{formErrors.courtName}</p>}
+              {formErrors.courtName && !first && <p className="text-left text-sm text-red-500">{formErrors.courtName}</p>}
             </div>
             
           
@@ -383,7 +379,7 @@ function PublicarQuadraView() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              {formErrors.courtType && <p className="text-left text-sm text-red-500">{formErrors.courtType}</p>}
+              {formErrors.courtType && !first && <p className="text-left text-sm text-red-500">{formErrors.courtType}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -391,7 +387,7 @@ function PublicarQuadraView() {
               <Input
                 onChange={(e) => setCourtAddress(e.target.value)}
               />
-                {formErrors.courtAddress && <p className="text-left text-sm text-red-500">{formErrors.courtAddress}</p>}
+                {formErrors.courtAddress && !first && <p className="text-left text-sm text-red-500">{formErrors.courtAddress}</p>}
             </div>
             
             <div className='flex flex-row flex-wrap gap-10'>
@@ -432,7 +428,7 @@ function PublicarQuadraView() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {formErrors.courtState && <p className="text-sm text-red-500">{formErrors.courtState}</p>}
+                {formErrors.courtState && !first &&  <p className="text-sm text-red-500">{formErrors.courtState}</p>}
             </div>
             
             <div className="flex items-center space-x-4">
@@ -472,13 +468,13 @@ function PublicarQuadraView() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              {formErrors.courtCity && <p className="text-sm text-red-500">{formErrors.courtCity}</p>}
+              {formErrors.courtCity && !first && <p className="text-sm text-red-500">{formErrors.courtCity}</p>}
             </div>
             
             <div className='flex gap-4'>
               <Label>CEP</Label>
               <Input   min="0" maxLength={8} onChange={(e) => {handleCEPChange(e)}}/>
-              {formErrors.courtCEP && <p className="text-sm text-red-500">{formErrors.courtCEP}</p>}
+              {formErrors.courtCEP && !first && <p className="text-sm text-red-500">{formErrors.courtCEP}</p>}
             </div>
 
           </div>
@@ -490,7 +486,7 @@ function PublicarQuadraView() {
                 value={courtRules}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCourtRules(e.target.value)}
               />
-               {formErrors.courtRules && <p className="text-sm text-left text-red-500">{formErrors.courtRules}</p>}
+               {formErrors.courtRules && !first && <p className="text-sm text-left text-red-500">{formErrors.courtRules}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -499,7 +495,7 @@ function PublicarQuadraView() {
                 value={courtDescription}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCourtDescription(e.target.value)}
               />
-               {formErrors.courtDescription && <p className="text-sm text-left text-red-500">{formErrors.courtDescription}</p>}
+               {formErrors.courtDescription && !first && <p className="text-sm text-left text-red-500">{formErrors.courtDescription}</p>}
             </div>
 
             <div className='grid gap-3'>
@@ -540,7 +536,7 @@ function PublicarQuadraView() {
                   <Label htmlFor="domingo">Domingo</Label>
                 </div>
               </div>
-              {formErrors.selectedDays && <p className="text-left text-sm text-red-500">{formErrors.selectedDays}</p>}
+              {formErrors.selectedDays && !first && <p className="text-left text-sm text-red-500">{formErrors.selectedDays}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -557,7 +553,7 @@ function PublicarQuadraView() {
                           )}
                       >
                           <FaRegClock className="mr-2 h-4 w-4" />
-                          {selectedTimeStart ? format(selectedTimeStart, "HH:mm") : <span>Horário de abertura</span>}
+                          {selectedTimeStart  ? format(selectedTimeStart, "HH:mm") : <span>Horário de abertura</span>}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -629,7 +625,7 @@ function PublicarQuadraView() {
                   </PopoverContent>
                 </Popover>
               </div>
-              {(formErrors.selectedTimeStart || formErrors.selectedTimeEnd) && <p className="text-sm text-left text-red-500">Por favor, escolha o horário de funcionamento da quadra.</p>}
+              {(formErrors.selectedTimeStart || formErrors.selectedTimeEnd) && !first && <p className="text-sm text-left text-red-500">Por favor, escolha o horário de funcionamento da quadra.</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -677,7 +673,7 @@ function PublicarQuadraView() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              {formErrors.slot && <p className="text-sm text-left text-red-500">{formErrors.slot}</p>}
+              {formErrors.slot && !first && <p className="text-sm text-left text-red-500">{formErrors.slot}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -687,7 +683,7 @@ function PublicarQuadraView() {
                 min="0"
                 onChange={(e)=> setCourtPrice(e.target.value)}
               />
-               {formErrors.courtPrice && <p className="text-sm text-left text-red-500">{formErrors.courtPrice}</p>}
+               {formErrors.courtPrice && !first && <p className="text-sm text-left text-red-500">{formErrors.courtPrice}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -696,7 +692,7 @@ function PublicarQuadraView() {
                 type="file"
                 onChange={handleCourtImageChange}
               />
-              {formErrors.courtImage && <p className="text-sm text-left text-red-500">{formErrors.courtImage}</p>}
+              {formErrors.courtImage && !first && <p className="text-sm text-left text-red-500">{formErrors.courtImage}</p>}
             </div>
 
             <div className='grid gap-2'>
@@ -705,7 +701,7 @@ function PublicarQuadraView() {
                 type="file"
                 onChange={handleCourtDocumentChange}
               />
-                {formErrors.courtDocument&& <p className="text-sm text-left text-red-500">{formErrors.courtDocument}</p>}
+                {formErrors.courtDocument && !first && <p className="text-sm text-left text-red-500">{formErrors.courtDocument}</p>}
             </div>
 
           <Button type='submit' variant={'default'}>Cadastrar Quadra</Button>

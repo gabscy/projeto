@@ -1,165 +1,269 @@
-import '../App.css'
-import * as React from "react"
-import { useState } from 'react';
-import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '../components/ui/navigation-menu';
-import { TbSoccerField } from "react-icons/tb"
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Badge } from "@/components/ui/badge"
-import { FaStar } from "react-icons/fa";
-import { format, addMonths, startOfDay, isBefore, isAfter } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Separator } from "@/components/ui/separator";
+
+import { format } from "date-fns"
+import { useQuery,  } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useParams} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
+function ReservarQuadraView() {
+
+    const {id, slotId ,date }  = useParams()
+    const [nomeCapitao, setNomeCapitao] = useState('');
+    const [cpfCapitao, setCpfCapitao] = useState('');
+    const [metodoPagamento, setMetodoPagamento] = useState('');
+    const [numeroCartao, setNumeroCartao] = useState('');
+    const [cvv, setCvv] = useState('');
+    const [vencimento, setVencimento] = useState('');
+    const [nomeCartao, setNomeCartaoTitular] = useState('');
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [first, setFirst] = useState(true);
+    const navigate = useNavigate();
+    const [slots, setSlots] = useState<Slot[]>([])
+
+    interface Slot {
+		id: number;
+		quadra_id: number;
+		date: string;
+		horario_inicio: number;
+		horario_fim: number;
+		available: number;
+	}
+
+   function slotAvailable(slotId: number) {
+    const slot = slots.find(slot => slot.id === slotId);
+    if (slot && slot.available === 0) {
+        return true; 
+    }
+    return false; 
+    }
+
+    const fetchQuadra = async (id : string) => {
+		
+        const response = await fetch(`http://localhost:3000/quadra/${id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json()
+
+	};
+
+    const handleBuscarSlots = async () => {
+		try{
+		
+			const response = await fetch(`http://localhost:3000/disponibilidade-quadra?date=${date}&quadraId=${id}`)
+			setSlots(await response.json())
+		}
+		catch(err){
+			alert("Something went wrong")
+		}
+	}
+	
+
+	const { data: quadra,  error } = useQuery({
+		queryKey: ['quadra', id],
+		queryFn: () => fetchQuadra(id!), // Add the non-null assertion operator here
+		staleTime: 60 * 1000,
+		retry: 3,
+	});
+
+    if(error){
+        alert("Something went wrong")
+    }
 
 
+    // Valida o formulário sempre que um campo relevante muda
+    useEffect(() => {
+        validateForm();
+    }, [nomeCapitao, cpfCapitao, metodoPagamento, numeroCartao, cvv, vencimento, nomeCartao]);
 
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover"
+    const validateForm = () => {
+        const errors: { [key: string]: string } = {};
+        let isValid = true;
 
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "@/components/ui/accordion"
+        if (!nomeCapitao.trim()) {
+            errors.nomeCapitao = "Por favor, digite o nome do capitão.";
+            isValid = false;
+        }
+        if (!cpfCapitao.trim()) {
+            errors.cpfCapitao = "Por favor, digite o CPF do capitão.";
+            isValid = false;
+        }
+        if (!metodoPagamento) {
+            errors.metodoPagamento = "Por favor, selecione o método de pagamento.";
+            isValid = false;
+        }
+        if (!numeroCartao.trim()) {
+            errors.numeroCartao = "Por favor, digite o número do cartão.";
+            isValid = false;
+        }
+        if (!cvv.trim()) {
+            errors.cvv = "Por favor, digite o CVV.";
+            isValid = false;
+        }
+        if (!vencimento.trim()) {
+            errors.vencimento = "Por favor, digite o vencimento do cartão.";
+            isValid = false;
+        }
+        if (!nomeCartao.trim()) {
+            errors.nomeCartao = "Por favor, digite o nome do titular do cartão.";
+            isValid = false;
+        }
 
+        setFormErrors(errors);
+        setIsFormValid(isValid);
+    };
 
+   const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFirst(false);
 
+    if (isFormValid) {
+        handleBuscarSlots()
 
-function BuscarQuadrasView() {
-	const [date, setDate] = React.useState<Date>();
-	const today = startOfDay(new Date());
-	const oneMonthFromToday = addMonths(today, 1);
-	const [time, setTime] = useState<string>();
+        if(!slots ) return
 
-	return (
-		<>
-			<header className='flex justify-between items-center py-2 px-8 border-b'>
-				<TbSoccerField size={48} />
+        if(!slotAvailable(Number(slotId)))
+            return
 
-				<NavigationMenu>
-				<NavigationMenuList>
-					<NavigationMenuItem>
-					<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-						Home
-					</NavigationMenuLink>
-					</NavigationMenuItem>
+        const reservaData = {
+            quadraId: quadra.id, 
+            dataReserva: date, 
+            nomeCapitao: nomeCapitao,
+            cpfCapitao: cpfCapitao,
+            valor: quadra.price, 
+            metodoPagamento: metodoPagamento,
+            numeroCartao,
+            cvv : cvv,
+            vencimento : vencimento,
+            nomeCartao: nomeCartao,
+            slotId: slotId 
+        };
 
-					<NavigationMenuItem>
-					<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-						Minha Quadras
-					</NavigationMenuLink>
-					</NavigationMenuItem>
+      try {
+        const response = await fetch('http://localhost:3000/reservar-quadra', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reservaData),
+        });
 
-					<NavigationMenuItem>
-					<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-						Minha Conta
-					</NavigationMenuLink>
-					</NavigationMenuItem>
-				</NavigationMenuList>
-				</NavigationMenu>
-			</header>
+        if (response.ok) {
+          
+          console.log('Reserva realizada com sucesso!');
+        } else {
+          console.error('Erro ao realizar a reserva:', response.status);
+        }
+      } catch (error) {
+        console.error("Erro:", error);
+      }
+    }
+  };
 
-			<section className='flex flex-col px-2 pt-10 gap-8 max-w-6xl mx-auto'>
-				<div className='flex flex-col gap-2'>
-					<div className='flex flex-row justify-between items-center'>
-						<Label className=' font-bold text-2xl'>Playball Pompeia</Label>
-						<div className='flex flex-row gap-2 items-center'>
-							<Label className='text-lg' >4.2</Label>
-							<FaStar />
-							<Button variant="outline">Avaliar</Button>
-						</div>
+  return (
+    <div className="max-w-4xl mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Reservar Quadra</h1>
+      <form onSubmit={handleSubmitForm} className="space-y-6">
+        <div>
+          <Label htmlFor="nomeCapitao" className="block mb-2">Nome do Capitão</Label>
+          <Input
+            id="nomeCapitao"
+            value={nomeCapitao}
+            onChange={(e) => setNomeCapitao(e.target.value)}
+            className="w-full"
+            placeholder="Digite o nome completo"
+          />
+           {formErrors.nomeCapitao && !first && <p className="text-sm text-red-500">{formErrors.nomeCapitao}</p>}
+        </div>
 
-					</div>
-					<Label className='text-lg font-normal'>Rua Jararaquara 123</Label>
-					<div className='flex flex-row align-center gap-2 mt-4'>
-						<Badge className='text-sm' 	variant="outline">Futebol</Badge>
-						
-					</div>
+        <div>
+          <Label htmlFor="cpfCapitao" className="block mb-2">CPF do Capitão</Label>
+          <Input
+            id="cpfCapitao"
+            value={cpfCapitao}
+            onChange={(e) => setCpfCapitao(e.target.value)}
+            className="w-full"
+            placeholder="Digite o CPF"
+          />
+           {formErrors.cpfCapitao && !first && <p className="text-sm text-red-500">{formErrors.cpfCapitao}</p>}
+        </div>
 
-				</div>
+        <div>
+          <Label htmlFor="metodoPagamento" className="block mb-2">Método de Pagamento</Label>
+          <Select onValueChange={setMetodoPagamento} value={metodoPagamento}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione o método de pagamento" />
+            </SelectTrigger>
+            <SelectContent>
+            
+              <SelectItem value="cartao de credito">Cartão de Crédito</SelectItem>
+            </SelectContent>
+          </Select>
+           {formErrors.metodoPagamento && !first && <p className="text-sm text-red-500">{formErrors.metodoPagamento}</p>}
+        </div>
 
-				<Card className='h-60'>
-					<img className="w-auto h-full object-contain " src="/imgs/quadrateste.jpg" alt="Imagem de Quadra"/>
-				</Card>
+        {metodoPagamento === 'cartao de credito' && (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="numeroCartao" className="block mb-2">Número do Cartão</Label>
+              <Input
+                id="numeroCartao"
+                value={numeroCartao}
+                onChange={(e) => setNumeroCartao(e.target.value)}
+                className="w-full"
+                placeholder="Digite o número do cartão"
+              />
+               {formErrors.numeroCartao && !first && <p className="text-sm text-red-500">{formErrors.numeroCartao}</p>}
+            </div>
+            <div>
+              <Label htmlFor="cvv" className="block mb-2">CVV</Label>
+              <Input
+                id="cvv"
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value)}
+                className="w-full"
+                placeholder="Digite o CVV"
+              />
+               {formErrors.cvv && !first && <p className="text-sm text-red-500">{formErrors.cvv}</p>}
+            </div>
+            <div>
+              <Label htmlFor="vencimento" className="block mb-2">Vencimento</Label>
+              <Input
+                id="vencimento"
+                value={vencimento}
+                onChange={(e) => setVencimento(e.target.value)}
+                className="w-full"
+                placeholder="MM/AA"
+              />
+               {formErrors.vencimento && !first && <p className="text-sm text-red-500">{formErrors.vencimento}</p>}
+            </div>
+            <div>
+              <Label htmlFor="nomeCartao" className="block mb-2">Nome do Titular</Label>
+              <Input
+                id="nomeCartao"
+                value={nomeCartao}
+                onChange={(e) => setNomeCartaoTitular(e.target.value)}
+                className="w-full"
+                placeholder="Digite o nome do titular"
+              />
+               {formErrors.nomeCartao && !first && <p className="text-sm text-red-500">{formErrors.nomeCartao}</p>}
+            </div>
+          </div>
+        )}
 
-				<div>
-					<Accordion type="single" collapsible className='text-left'>
-						<AccordionItem value="item-1" >
-							<AccordionTrigger className='max-w-40 font-bold text-lg'>Descrição</AccordionTrigger>
-							<AccordionContent>
-							Esta quadra de futebol oferece um espaço amplo e bem cuidado para a prática do desporto rei. Com dimensões oficiais, relva de alta qualidade e iluminação adequada, o campo está pronto para receber jogos amadores e profissionais. As balizas emolduram o relvado, convidando a grandes jogadas.
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
-					<Separator className='h-0'/>
-					<Accordion type="single" collapsible className='text-left'>
-						<AccordionItem value="item-1" >
-							<AccordionTrigger className='max-w-40 font-bold text-lg'>Regras</AccordionTrigger>
-							<AccordionContent>
-							É proibido fumar nas instalações.
-
-Não é permitido o uso de chuteiras com pitons de metal.
-
-Os jogadores devem usar equipamento adequado.
-
-A quadra deve ser utilizada apenas para a prática de futebol.
-
-Os jogos devem terminar no horário agendado.
-
-É proibido levar comida e bebida para dentro da quadra.
-
-Os utilizadores são responsáveis por manter a quadra limpa e organizada.
-							</AccordionContent>
-						</AccordionItem>
-					</Accordion>
-					<Separator className='h-0'/>
-				</div>
-
-				<Label className='font-bold text-2xl'>Reservar</Label>
-				<div className='grid grid-cols-3'>
-					<div className='flex flex-col gap-4'>
-						<Label >Data</Label>
-						<Popover>
-							<PopoverTrigger asChild>
-								<Button
-								variant={"outline"}
-								className={cn(
-									"w-[280px] justify-start text-left font-normal",
-									!date && "text-muted-foreground"
-								)}
-								>
-								<CalendarIcon className="mr-2 h-4 w-4" />
-								{date ? format(date, "PPP") : <span>Escolha uma data</span>}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className="w-auto p-0">
-								<Calendar
-								mode="single"
-								selected={date}
-								onSelect={setDate}
-								initialFocus
-								defaultMonth={today}
-								disabled={(dateToCheck) => isBefore(dateToCheck, today) || isAfter(dateToCheck, oneMonthFromToday)}
-								/>
-							</PopoverContent>
-						</Popover>
-					</div>
-				</div>
-
-			</section>
-
-
-		</>
-	)
+        <Button type="submit" className="w-full">
+          Finalizar Reserva
+        </Button>
+      </form>
+    </div>
+  );
 }
 
+export default ReservarQuadraView;
 
-export default BuscarQuadrasView
