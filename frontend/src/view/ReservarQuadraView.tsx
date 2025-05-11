@@ -34,8 +34,10 @@ function ReservarQuadraView() {
 		available: number;
 	}
 
-   function slotAvailable(slotId: number) {
+   function slotAvailable(slots:Slot[], slotId: number) {
+    console.log(slots)
     const slot = slots.find(slot => slot.id === slotId);
+    console.log(slot)
     if (slot && slot.available === 0) {
         return true; 
     }
@@ -43,7 +45,6 @@ function ReservarQuadraView() {
     }
 
     const fetchQuadra = async (id : string) => {
-		
         const response = await fetch(`http://localhost:3000/quadra/${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -53,18 +54,20 @@ function ReservarQuadraView() {
 
 	};
 
-    const handleBuscarSlots = async () => {
-		try{
-		
-			const response = await fetch(`http://localhost:3000/disponibilidade-quadra?date=${date}&quadraId=${id}`)
-			setSlots(await response.json())
-		}
-		catch(err){
-			alert("Something went wrong")
-		}
-	}
-	
+   const handleBuscarSlots = async () => {
+    try {
+        const response = await fetch(`http://localhost:3000/disponibilidade-quadra?date=${date}&quadraId=${id}`);
+        const data = await response.json(); 
+        setSlots(data);
+        return data
+    }
+    catch (err) {
+        console.error("Erro ao buscar slots:", err); // Use console.error para logs de erro
+        alert("Algo deu errado ao buscar os horários disponíveis."); // Alerta ao usuário
 
+    }
+};
+	
 	const { data: quadra,  error } = useQuery({
 		queryKey: ['quadra', id],
 		queryFn: () => fetchQuadra(id!), // Add the non-null assertion operator here
@@ -76,6 +79,9 @@ function ReservarQuadraView() {
         alert("Something went wrong")
     }
 
+    useEffect(()=>{
+        console.log(slots)
+    },[slots])
 
     // Valida o formulário sempre que um campo relevante muda
     useEffect(() => {
@@ -124,12 +130,21 @@ function ReservarQuadraView() {
     setFirst(false);
 
     if (isFormValid) {
-        handleBuscarSlots()
+        const slotsData =await handleBuscarSlots(); // Espera a função terminar e obtém o resultado
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        if(!slots ) return
+        if (slotsData.length <= 0) {
+            console.log("Não foi possível obter os slots.");
+            return; // Encerra a função se não houver slots
+        }
+       
 
-        if(!slotAvailable(Number(slotId)))
-            return
+        if (!slotAvailable(slotsData, Number(slotId))) {
+            console.log("Slot indisponível.");
+            return;
+        }
+
+            
 
         const reservaData = {
             quadraId: quadra.id, 
@@ -167,9 +182,9 @@ function ReservarQuadraView() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
+    <div className="max-w-4xl mx-auto py-8 ">
       <h1 className="text-2xl font-bold mb-6">Reservar Quadra</h1>
-      <form onSubmit={handleSubmitForm} className="space-y-6">
+      <form onSubmit={handleSubmitForm} className="space-y-10 flex flex-col  text-start">
         <div>
           <Label htmlFor="nomeCapitao" className="block mb-2">Nome do Capitão</Label>
           <Input
@@ -209,7 +224,7 @@ function ReservarQuadraView() {
         </div>
 
         {metodoPagamento === 'cartao de credito' && (
-          <div className="space-y-4">
+          <div className="space-y-4 ">
             <div>
               <Label htmlFor="numeroCartao" className="block mb-2">Número do Cartão</Label>
               <Input
@@ -227,7 +242,7 @@ function ReservarQuadraView() {
                 id="cvv"
                 value={cvv}
                 onChange={(e) => setCvv(e.target.value)}
-                className="w-full"
+                className="w-50"
                 placeholder="Digite o CVV"
               />
                {formErrors.cvv && !first && <p className="text-sm text-red-500">{formErrors.cvv}</p>}
