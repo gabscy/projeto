@@ -134,9 +134,9 @@ function PublicarQuadraView() {
   const handleCEPChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.replace(/[^0-9]/g, '');
     event.target.value = newValue
-    if(event.target.value.length ==8){
+
       setCourtCEP(newValue);
-    }
+    
   };
 
   const handleCourtImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -183,7 +183,7 @@ function PublicarQuadraView() {
       isValid= false;
     }
 
-    if (!courtCEP) {
+    if (!courtCEP.trim()) {
       errors.courtCEP = "Por favor, digite o CEP da quadra.";
       isValid = false;
 

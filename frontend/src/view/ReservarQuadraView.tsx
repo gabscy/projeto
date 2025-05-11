@@ -8,6 +8,9 @@ import { useQuery,  } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useParams} from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@radix-ui/react-separator';
+import { FadeLoader } from "react-spinners"
 
 function ReservarQuadraView() {
 
@@ -23,7 +26,8 @@ function ReservarQuadraView() {
     const [isFormValid, setIsFormValid] = useState(false);
     const [first, setFirst] = useState(true);
     const navigate = useNavigate();
-    const [slots, setSlots] = useState<Slot[]>([])
+    const [slot, setSlot] = useState<Slot>()
+    	
 
     interface Slot {
 		id: number;
@@ -34,14 +38,24 @@ function ReservarQuadraView() {
 		available: number;
 	}
 
+    const formatTime = (hour: number): string => {
+		const integerPart = Math.floor(hour);
+		const decimalPart = hour - integerPart;
+
+		const formattedHour = integerPart.toString().padStart(2, '0');
+		const formattedMinutes = decimalPart === 0.5 ? '30' : '00';
+
+		return `${formattedHour}:${formattedMinutes}`;
+	};
+
+
    function slotAvailable(slots:Slot[], slotId: number) {
-    console.log(slots)
     const slot = slots.find(slot => slot.id === slotId);
-    console.log(slot)
-    if (slot && slot.available === 0) {
-        return true; 
+    
+    if (slot) {
+        return slot; 
     }
-    return false; 
+    return null; 
     }
 
     const fetchQuadra = async (id : string) => {
@@ -54,34 +68,45 @@ function ReservarQuadraView() {
 
 	};
 
-   const handleBuscarSlots = async () => {
-    try {
+    const fetchSlots = async () => {
         const response = await fetch(`http://localhost:3000/disponibilidade-quadra?date=${date}&quadraId=${id}`);
-        const data = await response.json(); 
-        setSlots(data);
-        return data
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json()
     }
-    catch (err) {
-        console.error("Erro ao buscar slots:", err); // Use console.error para logs de erro
-        alert("Algo deu errado ao buscar os horários disponíveis."); // Alerta ao usuário
 
-    }
-};
 	
-	const { data: quadra,  error } = useQuery({
+	const { data: quadra, isFetching:quadraFetching,  error:erroQuadra } = useQuery({
 		queryKey: ['quadra', id],
 		queryFn: () => fetchQuadra(id!), // Add the non-null assertion operator here
 		staleTime: 60 * 1000,
 		retry: 3,
 	});
 
-    if(error){
+    if(erroQuadra){
+        alert("Something went wrong")
+    }
+
+    const { data: slots,isFetching:slotFetching, refetch,  error:erroSlot } = useQuery({
+		queryKey: ['slots', id],
+		queryFn: fetchSlots, 
+		staleTime: 60 * 1000,
+		retry: 3,
+	});
+
+    if(erroSlot){
         alert("Something went wrong")
     }
 
     useEffect(()=>{
-        console.log(slots)
+        if(!slots)
+            return
+        const currSlot = slotAvailable(slots, Number(slotId))
+        if(currSlot)
+            setSlot(currSlot)
     },[slots])
+
 
     // Valida o formulário sempre que um campo relevante muda
     useEffect(() => {
@@ -130,16 +155,16 @@ function ReservarQuadraView() {
     setFirst(false);
 
     if (isFormValid) {
-        const slotsData =await handleBuscarSlots(); // Espera a função terminar e obtém o resultado
+        await refetch(); // Espera a função terminar e obtém o resultado
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (slotsData.length <= 0) {
+        if (slots.length <= 0 || !slots) {
             console.log("Não foi possível obter os slots.");
             return; // Encerra a função se não houver slots
         }
        
 
-        if (!slotAvailable(slotsData, Number(slotId))) {
+        if (!slotAvailable(slots, Number(slotId))) {
             console.log("Slot indisponível.");
             return;
         }
@@ -181,9 +206,55 @@ function ReservarQuadraView() {
     }
   };
 
+  const handleCPFChange = (event: React.ChangeEvent<HTMLInputElement>) =>{
+     const newValue = event.target.value.replace(/[^0-9]/g, '');
+        event.target.value = newValue
+
+        setCpfCapitao(newValue);
+  }
+  
+  const handleCvvChange = (event: React.ChangeEvent<HTMLInputElement>) =>{
+     const newValue = event.target.value.replace(/[^0-9]/g, '');
+        event.target.value = newValue
+
+        setCvv(newValue);
+  }
+
+ const handleChangeVencimento = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let value = event.target.value.replace(/\D/g, ''); 
+    if (value.length > 4) {
+      value = value.slice(0, 4);
+    }
+    if (value.length > 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2); 
+    }
+    setVencimento(value);
+
+  };
+
   return (
-    <div className="max-w-4xl mx-auto py-8 ">
+    <div className="max-w-4xl flex flex-col mx-auto py-8 gap-8">
       <h1 className="text-2xl font-bold mb-6">Reservar Quadra</h1>
+
+       {(slotFetching || quadraFetching || !slot)? (<FadeLoader/>) : (
+        <Card className='p-4 flex- flex-col gap-2'>
+            <Label className='text-base'>Detalhes da reserva</Label>
+            <Separator/>
+         
+            <div className='flex flex-col gap-4'>
+                <Label>Quadra : <span className="font-normal">{quadra.name}</span></Label>
+                <Label>Endereço : <span className="font-normal">{quadra.address}</span></Label>
+             
+                 <Label>Data : <span className="font-normal">{date}</span></Label>
+                <Label>Horário : <span className="font-normal">{formatTime(slot.horario_inicio)} - {formatTime(slot.horario_fim)}</span></Label>
+                <Label>Preço : <span className="font-normal">{quadra.price} R$</span></Label>
+            </div>
+            
+         
+        </Card>
+
+       )} 
+     
       <form onSubmit={handleSubmitForm} className="space-y-10 flex flex-col  text-start">
         <div>
           <Label htmlFor="nomeCapitao" className="block mb-2">Nome do Capitão</Label>
@@ -202,7 +273,7 @@ function ReservarQuadraView() {
           <Input
             id="cpfCapitao"
             value={cpfCapitao}
-            onChange={(e) => setCpfCapitao(e.target.value)}
+            onChange={(e) => handleCPFChange(e)}
             className="w-full"
             placeholder="Digite o CPF"
           />
@@ -229,6 +300,7 @@ function ReservarQuadraView() {
               <Label htmlFor="numeroCartao" className="block mb-2">Número do Cartão</Label>
               <Input
                 id="numeroCartao"
+                type="number"
                 value={numeroCartao}
                 onChange={(e) => setNumeroCartao(e.target.value)}
                 className="w-full"
@@ -240,9 +312,10 @@ function ReservarQuadraView() {
               <Label htmlFor="cvv" className="block mb-2">CVV</Label>
               <Input
                 id="cvv"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
+                value={cvv}               
+                onChange={(e) => handleCvvChange(e)}
                 className="w-50"
+                maxLength={3}
                 placeholder="Digite o CVV"
               />
                {formErrors.cvv && !first && <p className="text-sm text-red-500">{formErrors.cvv}</p>}
@@ -252,7 +325,7 @@ function ReservarQuadraView() {
               <Input
                 id="vencimento"
                 value={vencimento}
-                onChange={(e) => setVencimento(e.target.value)}
+                onChange={(e) => handleChangeVencimento(e)}
                 className="w-full"
                 placeholder="MM/AA"
               />

@@ -58,9 +58,8 @@ function BuscarQuadrasView() {
     const handleCEPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value.replace(/[^0-9]/g, '');
         event.target.value = newValue
-        if(event.target.value.length ==8){
-            setCourtCEP(newValue);
-        }
+
+        setCourtCEP(newValue);
     };
     
    
