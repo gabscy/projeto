@@ -58,7 +58,7 @@ export class SlotRepository {
 
     async buscarSlotsDisponiveis(data: BuscarDisponibilidadeDTO): Promise<Slot[]> {
         const db = await this.dbPromise;
-        const query = "SELECT * FROM slots WHERE date = ? AND quadra_id = ? AND available = FALSE";
+        const query = "SELECT * FROM slots WHERE date = ? AND quadra_id = ?";
         const values = [data.date, data.quadraId];
 
         return await db.all(query, values) as Slot[];
