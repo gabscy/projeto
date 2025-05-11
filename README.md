@@ -6,7 +6,7 @@ Nome: Enrico Najjar Galdeano
 RA: 10402924
 
 ## Como executar
-# POR FAVOR UTILIZAR BRANCH DEV
+## Por favor utilizar branch dev
 
 1) Entrar no terminal na pasta 'projeto'
 2) Entrar na página 'backend'
