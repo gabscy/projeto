@@ -6,6 +6,8 @@ Nome: Enrico Najjar Galdeano
 RA: 10402924
 
 ## Como executar
+#POR FAVOR UTILIZAR BRANCH DEV
+
 1) Entrar no terminal na pasta 'projeto'
 2) Entrar na página 'backend'
 3) Executar comando 'npm i'
