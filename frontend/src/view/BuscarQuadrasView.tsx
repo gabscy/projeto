@@ -33,8 +33,11 @@ function BuscarQuadrasView() {
     const [minPrice, setMinPrice] = useState<number | string>('');
     const [maxPrice, setMaxPrice] = useState<number | string>('');
     const [filteredData, setFilteredData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
-   
+     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+         setSearchTerm(event.target.value);
+    };
 
     const handleCheckboxClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         const { id } = event.currentTarget;
@@ -102,7 +105,12 @@ function BuscarQuadrasView() {
             const priceBelowMax =
                 maxPrice === '' || (quadra.price !== undefined && Number(quadra.price) <= Number(maxPrice));
 
-            return isTypeSelected && priceAboveMin && priceBelowMax;
+                // Filter by name
+            const nameIncludesSearchTerm =
+                searchTerm === '' || (quadra.name && quadra.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            console.log(searchTerm)
+            return isTypeSelected && priceAboveMin && priceBelowMax && nameIncludesSearchTerm;
         });
 
         setFilteredData(filtered);
@@ -112,7 +120,7 @@ function BuscarQuadrasView() {
         if (data) {
             atualizarFiltros(data);
         }
-     }, [selectedTypes, courtCEP, minPrice, maxPrice, data]);
+     }, [selectedTypes, courtCEP, minPrice, maxPrice,searchTerm, data]);
     
 
 
@@ -234,8 +242,9 @@ function BuscarQuadrasView() {
                 </Label>
                 <Input
                     id="search"
-                    placeholder="Search the docs..."
+                    placeholder="Procurar por nome..."
                     className="pl-8"
+                    onChange={(e) => handleSearchChange(e)}
                 />
                 <Search className="pointer-events-none absolute left-2 top-[10px] size-4 select-none opacity-50" />
             </div>

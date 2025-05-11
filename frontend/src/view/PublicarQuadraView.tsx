@@ -30,7 +30,7 @@ function PublicarQuadraView() {
   const [courtType, setCourtType] = useState("")
   const [courtState, setCourtState] = useState<UF | null>(null);
   const [openState, setOpenState] = useState(false);
-  const [courtCity, setCourtCity] = useState<Cidade | null>(null);
+  const [courtCity, setCourtCity] = useState("");
   const [courtCEP, setCourtCEP] = useState('')
   const [courtAddress, setCourtAddress] = useState('');
   const [courtRules, setCourtRules] = useState('');
@@ -73,10 +73,6 @@ function PublicarQuadraView() {
   useEffect(() => {
       setTimeOptions(generateTimeOptions());
   }, []);
-
-  useEffect(() => {
-    console.log(courtCEP);
-  }, [courtCEP]);
 
    // Atualiza as opções de hora de término quando o horário de início muda
   useEffect(() => {
@@ -142,19 +138,17 @@ function PublicarQuadraView() {
   const handleCourtImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null; // Get the first selected file or null
     setCourtImage(file);
-    console.log('Selected Image:', file);
   };
 
   const handleCourtDocumentChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null; // Get the first selected file or null
     setCourtDocument(file);
-    console.log('Selected Image:', file);
   };
 
    // Valida o formulário sempre que um campo relevante muda
   useEffect(() => {
     validateForm();
-   }, [courtName, courtType, courtAddress, courtState, courtDescription, courtRules, selectedDays, selectedTimeStart, selectedTimeEnd, slot, courtDocument, courtImage]);
+   }, [courtName, courtType, courtAddress, courtState, courtDescription, courtRules, selectedDays,courtCity, courtCEP, selectedTimeStart, selectedTimeEnd, slot, courtDocument, courtImage]);
 
 
   // Função para validar o formulário
@@ -178,12 +172,12 @@ function PublicarQuadraView() {
       errors.courtState = "Por favor, selecione um estado.";
       isValid = false;
     }
-    if(!courtCity){
-      errors.courtCity = "Por favor, indique a cidade da quadra"
+    if(!courtCity.trim()){
+      errors.courtCity = "Por favor, selecione a cidade da quadra"
       isValid= false;
     }
 
-    if (!courtCEP.trim()) {
+    if (!courtCEP.trim() || courtCEP.trim().length < 8) {
       errors.courtCEP = "Por favor, digite o CEP da quadra.";
       isValid = false;
 
@@ -247,7 +241,7 @@ function PublicarQuadraView() {
       formData.append("courtType", courtType);
       formData.append("courtAddress", courtAddress);
       formData.append("courtState", courtState?.value || '');
-      formData.append("courtCity", courtCity?.value || '');
+      formData.append("courtCity", courtCity);
       formData.append("courtCEP", courtCEP);
       formData.append("courtDescription", courtDescription);
       formData.append("courtRules", courtRules);
@@ -262,7 +256,7 @@ function PublicarQuadraView() {
       if (courtDocument) {
         formData.append('courtDocument', courtDocument);
       }
-
+      console.log(formData)
       //publicar dados
       try {
         const response = await fetch('http://localhost:3000/quadra', {
@@ -270,24 +264,25 @@ function PublicarQuadraView() {
           body: formData,
         });
 
-        // Verifica se a requisição foi bem-sucedida (status 2xx)
+
         if (response.ok) {
+          console.log(formData)
+          alert('Quadra publicada com sucesso!');
+          
           navigate('/'); // Redireciona para a página inicial
-          console.log('Quadra publicada com sucesso!');
-          // Opcional: Você pode mostrar uma mensagem de sucesso ao usuário
+          
         } else {
           console.error('Erro ao publicar a quadra:', response.status);
-          // Opcional: Você pode mostrar uma mensagem de erro ao usuário
+         
         }
 
       } catch (error) {
         console.log(error);
-        // Opcional: Você pode mostrar uma mensagem de erro ao usuário
+
       }
 
     } else {
       console.log("Formulário inválido. Por favor, corrija os erros.");
-      // Opcional: Você pode mostrar uma mensagem de erro ao usuário
     }
   };
 
@@ -435,9 +430,9 @@ function PublicarQuadraView() {
               <Label>Cidade</Label>
               <Popover open={openCity} onOpenChange={setOpenCity}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-[220px] justify-start", formErrors.courtCity && "ring-red-500")}>
+                  <Button disabled={!courtState} variant="outline" className={cn("w-[220px] justify-start", formErrors.courtCity && "ring-red-500")}>
                     {courtCity ? (
-                      <>{courtCity.label}</> 
+                      <>{cidadesSaoPaulo.find((c) => c.value == courtCity)?.label}</> 
                     ) : (
                       <>Selecionar Cidade</>
                     )}
@@ -452,10 +447,10 @@ function PublicarQuadraView() {
                         {cidadesSaoPaulo.map((cidade) => (
                           <CommandItem
                             key={cidade.label}
-                            value={cidade.value}
+                            value={cidade.label}
                             onSelect={(value) => {
                               setCourtCity(
-                                cidadesSaoPaulo.find((c) => c.value === value) || null
+                                cidade.value
                               );
                               setOpenCity(false);
                             }}
@@ -541,7 +536,7 @@ function PublicarQuadraView() {
 
             <div className='grid gap-2'>
               <Label>Horário de funcionamento</Label>
-              <div className='flex gap-2'>
+              <div className='flex  flex-wrap gap-2'>
               
                 <Popover open={isPopoverOpenStart} onOpenChange={setIsPopoverOpenStart}>
                   <PopoverTrigger asChild>
@@ -581,7 +576,7 @@ function PublicarQuadraView() {
                       </ScrollArea>
                   </PopoverContent>
                 </Popover>
-                
+                <Label>Até</Label>
                 <Popover open={isPopoverOpenEnd} onOpenChange={setIsPopoverOpenEnd}>
                   <PopoverTrigger asChild>
                       <Button
@@ -681,6 +676,7 @@ function PublicarQuadraView() {
               <Input 
                 type="number"
                 min="0"
+                max={2000}
                 onChange={(e)=> setCourtPrice(e.target.value)}
               />
                {formErrors.courtPrice && !first && <p className="text-sm text-left text-red-500">{formErrors.courtPrice}</p>}

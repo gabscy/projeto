@@ -125,7 +125,7 @@ function BuscarQuadrasView() {
 			handleBuscarSlots()
 		}
 	
-		
+		console.log(quadra)
 	}, [date])
 
 	
@@ -256,7 +256,7 @@ function BuscarQuadrasView() {
 									{slots.map((slot) => {
 									 	const now = new Date();
 										const slotDate = new Date(slot.date);
-										const slotHour = Math.floor(slot.horario_inicio); // Assumindo que é um número (hora)
+										const slotHour = Math.floor(slot.horario_inicio); 
 
 										const isPast =
 											slotDate.getFullYear() < now.getFullYear() ||
@@ -312,15 +312,14 @@ function BuscarQuadrasView() {
 						
 						<Label className='text-lg' >Dia: <span className='text-base font-normal'>{date ? format(date, "PPP", { locale: ptBR }) : "Nenhum dia selecionado."}</span> </Label>
 
-						<div className='flex gap-2 items-start'>
-							<Label className='text-lg' >Horário da reserva:</Label>
-							<div className='flex flex-col gap-2 items-start'>
+						<div className='flex gap-2 items-center'>
+							<Label className='text-base' >Horário da reserva:</Label>
 					
-								{ selectedSlot ? (
+							{ selectedSlot ? (
 									<span className='text-base font-normal'>{formatTime(selectedSlot.horario_inicio)} - {formatTime(selectedSlot.horario_fim)}</span>
-								) : ("Nenhum horário selecionado.")
+								) : (<span className='text-sm'>Nenhum horário selecionado.</span>)
 							}
-							</div>
+
 						</div>
 						
 						<Label className='text-lg' >Total : <span className='font-normal'>{ selectedSlot? quadra.price : 0} R$ </span></Label>

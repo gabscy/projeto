@@ -49,7 +49,7 @@ function ReservarQuadraView() {
 	};
 
 
-   function slotAvailable(slots:Slot[], slotId: number) {
+   function findSlot(slots:Slot[], slotId: number) {
     const slot = slots.find(slot => slot.id === slotId);
     
     if (slot) {
@@ -100,13 +100,13 @@ function ReservarQuadraView() {
     }
 
     useEffect(()=>{
+        console.log(slots)
         if(!slots)
             return
-        const currSlot = slotAvailable(slots, Number(slotId))
+        const currSlot = findSlot(slots, Number(slotId))
         if(currSlot)
             setSlot(currSlot)
     },[slots])
-
 
     // Valida o formulário sempre que um campo relevante muda
     useEffect(() => {
@@ -133,11 +133,11 @@ function ReservarQuadraView() {
             errors.numeroCartao = "Por favor, digite o número do cartão.";
             isValid = false;
         }
-        if (!cvv.trim()) {
+        if (!cvv.trim() || cvv.trim().length < 3) {
             errors.cvv = "Por favor, digite o CVV.";
             isValid = false;
         }
-        if (!vencimento.trim()) {
+        if (!vencimento.trim() || vencimento.trim().length < 5) {
             errors.vencimento = "Por favor, digite o vencimento do cartão.";
             isValid = false;
         }
@@ -156,16 +156,17 @@ function ReservarQuadraView() {
 
     if (isFormValid) {
         await refetch(); // Espera a função terminar e obtém o resultado
-        await new Promise(resolve => setTimeout(resolve, 500));
+      
 
         if (slots.length <= 0 || !slots) {
             console.log("Não foi possível obter os slots.");
             return; // Encerra a função se não houver slots
         }
        
-
-        if (!slotAvailable(slots, Number(slotId))) {
+        const currSlot =  findSlot(slots, Number(slotId))
+        if (currSlot?.available === 1 || !currSlot) {
             console.log("Slot indisponível.");
+            alert("Horário indisponível")
             return;
         }
 
@@ -195,10 +196,11 @@ function ReservarQuadraView() {
         });
 
         if (response.ok) {
-          
+          alert("reserva realizada")
           console.log('Reserva realizada com sucesso!');
         } else {
           console.error('Erro ao realizar a reserva:', response.status);
+          alert("Falha ao realizar a reserva")
         }
       } catch (error) {
         console.error("Erro:", error);
