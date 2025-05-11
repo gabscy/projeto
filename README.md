@@ -16,4 +16,4 @@ RA: 10402924
 7) Executar comando 'npm i'
 8) Executar comando 'npm run dev'
 9) Entrar no link fornecido no terminal para acessar a aplicação
->>>>>>> main
+
