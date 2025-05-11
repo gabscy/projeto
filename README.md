@@ -18,5 +18,5 @@ RA: 10402924
 9) Entrar no link fornecido no terminal para acessar a aplicação
 
 ## Para publicar uma quadra
-- ir para "/publicar-quadra"
+- ir para url "/publicar-quadra"
 
