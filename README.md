@@ -17,3 +17,6 @@ RA: 10402924
 8) Executar comando 'npm run dev'
 9) Entrar no link fornecido no terminal para acessar a aplicação
 
+## Para publicar uma quadra
+- ir para /publicar-quadra
+
