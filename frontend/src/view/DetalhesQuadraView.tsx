@@ -205,7 +205,8 @@ function BuscarQuadrasView() {
 
 				<Label className='font-bold text-2xl'>Reservar</Label>
 				<div className='flex gap-10 flex-wrap justify-between'>
-					<div className='flex flex-col gap-6'>
+					<div className='flex flex-row gap-15 flex-wrap'>
+						<div className='flex flex-col gap-6'>
 						<Label className='text-xl' >Data</Label>
 						<Popover>
 							<PopoverTrigger asChild>
@@ -303,6 +304,8 @@ function BuscarQuadrasView() {
 						
 				
 					</div>		
+					</div>
+					
 
 					<Card className='flex flex-col w-100 gap-8 p-4'>
 						<div className=' flex  flex-col gap-4'>

@@ -109,7 +109,7 @@ function BuscarQuadrasView() {
             const nameIncludesSearchTerm =
                 searchTerm === '' || (quadra.name && quadra.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-            console.log(searchTerm)
+
             return isTypeSelected && priceAboveMin && priceBelowMax && nameIncludesSearchTerm;
         });
 
