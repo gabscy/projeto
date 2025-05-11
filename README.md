@@ -1,6 +1,6 @@
 ## Time
 Nome: Gabriel Shihao Chen Yin  
-RA: 10408981
+RA: 10408981  
 Nome: Enrico Najjar Galdeano  
 RA: 10402924
 
@@ -20,3 +20,5 @@ RA: 10402924
 ## Para publicar uma quadra
 - ir para url "/publicar-quadra"
 
+## Para Buscar quadras (Home)
+- ir para url "/"
