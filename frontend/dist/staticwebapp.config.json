@@ -1,29 +1,6 @@
 {
-  "routes": [
-    {
-      "route": "/",
-      "serve": "/index.html",
-      "statusCode": 200
-    },
-    {
-      "route": "/publicar-quadra",
-      "serve": "/index.html",
-      "statusCode": 200
-    },
-    {
-      "route": "/detalhes-quadra/{id}",
-      "serve": "/index.html",
-      "statusCode": 200
-    },
-    {
-      "route": "/reservar-quadra/{id}/{slotId}/{date}",
-      "serve": "/index.html",
-      "statusCode": 200
-    },
-    {
-      "route": "/{*all}",
-      "serve": "/index.html",
-      "statusCode": 200
-    }
-  ]
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["*.{css,scss,js,png,gif,ico,jpg,svg}"]
+  }
 }
