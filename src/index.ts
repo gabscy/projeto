@@ -10,7 +10,7 @@ import cors from "cors";
 dotenv.config();
 
 export const app = express();
-const port = 3000;
+const port = ProcessingInstruction.env.PORT || 3000;
 const quadraController = new QuadraController();
 const slotController = new SlotController();
 const reservaController = new ReservaController();
