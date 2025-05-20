@@ -1,7 +1,7 @@
 import { open, Database } from "sqlite";
 import { QuadraRepository } from "../repository/QuadraRepository";
-import { SlotService } from "../services/SlotService";
-import { FileService } from "../services/FileService";
+import { SlotService } from "./SlotService";
+import { FileService } from "./FileService";
 import { Quadra } from "../models/QuadraModel";
 import sqlite3 from 'sqlite3';
 

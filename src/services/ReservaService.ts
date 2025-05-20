@@ -1,5 +1,5 @@
 import { ReservaRepository } from "../repository/ReservaRepository";
-import { PagamentoService } from "../services/PagamentoService";
+import { PagamentoService } from "./PagamentoService";
 import { ReservarQuadraDTO } from "../dto/QuadraDTO";
 import sqlite3 from "sqlite3";
 import { open, Database } from "sqlite";
