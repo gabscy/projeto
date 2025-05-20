@@ -17,7 +17,7 @@ import {  Link } from 'react-router-dom';
 import { FadeLoader } from "react-spinners"
 
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 
 function BuscarQuadrasView() {
@@ -75,7 +75,7 @@ function BuscarQuadrasView() {
         return response.json()
     }
 
-    const { data, isFetching, refetch , error} = useQuery({
+    const { data, isFetching, error} = useQuery({
         queryKey: ["quadras"],
         queryFn: fetchQuadras,
         staleTime: 60 * 1000, 

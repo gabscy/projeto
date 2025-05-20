@@ -448,7 +448,7 @@ function PublicarQuadraView() {
                           <CommandItem
                             key={cidade.label}
                             value={cidade.label}
-                            onSelect={(value) => {
+                            onSelect={() => {
                               setCourtCity(
                                 cidade.value
                               );
