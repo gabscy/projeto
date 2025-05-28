@@ -8,6 +8,7 @@ import { UserController } from './controller/UserController';
 import cors from "cors";
 import { validateToken } from './middleware/validateToken';
 import { AuthController } from './controller/AuthController';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -24,6 +25,17 @@ const upload = multer({ storage: storage });
 
 app.use(express.json());
 app.use(cors());
+
+// Rate limiter middleware (e.g., max 100 requests per 15 minutes per IP)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Too many requests from this IP, please try again later.'
+});
+
+app.use(limiter);
 
 app.post("/quadra", upload.fields([
     { name: "courtImage", maxCount: 1 },
