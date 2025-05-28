@@ -6,6 +6,8 @@ import { ReservaController } from './controller/ReservaController';
 import dotenv from "dotenv";
 import { UserController } from './controller/UserController';
 import cors from "cors";
+import { validateToken } from './middleware/validateToken';
+import { AuthController } from './controller/AuthController';
 
 dotenv.config();
 
@@ -15,6 +17,7 @@ const quadraController = new QuadraController();
 const slotController = new SlotController();
 const reservaController = new ReservaController();
 const userController = new UserController();
+const authController = new AuthController();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -38,6 +41,8 @@ app.put("/user/:id", async (req: Request, res: Response) => await userController
 app.get('/quadra/:id', async (req: Request, res: Response) => await quadraController.buscarInfoQuadra(req, res))
 
 app.post('/login', async (req: Request, res: Response) => await userController.login(req, res))
+
+app.get('/auth/validate', validateToken, (req: Request, res: Response) => authController.validate(req, res));
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
