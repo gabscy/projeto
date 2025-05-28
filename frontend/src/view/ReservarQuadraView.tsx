@@ -155,7 +155,7 @@ function ReservarQuadraView() {
     setFirst(false);
 
     if (isFormValid) {
-        await refetch(); // Espera a função terminar e obtém o resultado
+        await refetch(); 
       
 
         if (slots.length <= 0 || !slots) {
