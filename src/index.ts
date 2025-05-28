@@ -37,6 +37,8 @@ app.put("/user/:id", async (req: Request, res: Response) => await userController
 
 app.get('/quadra/:id', async (req: Request, res: Response) => await quadraController.buscarInfoQuadra(req, res))
 
+app.post('/login', async (req: Request, res: Response) => await userController.login(req, res))
+
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

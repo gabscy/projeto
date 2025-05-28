@@ -1,7 +1,7 @@
 import { open, Database } from "sqlite";
 import sqlite3 from "sqlite3";
 import { User } from "../models/UserModel";
-import { editarUsuarioDTO } from "../dto/QuadraDTO";
+import { editarUsuarioDTO, tipoDTO } from "../dto/QuadraDTO";
 
 export class UserRepository {
     private dbPromise: Promise<Database>;
@@ -28,6 +28,19 @@ export class UserRepository {
             tipo TEXT NOT NULL CHECK(tipo IN ('ADM', 'CAP', 'JOG'))
             )
         `);
+    }
+
+    async login(email: string, senha: string): Promise<tipoDTO> {
+        const db = await this.dbPromise;
+        const query = "SELECT id, tipo estado FROM users WHERE email = ? AND password = ?";
+        
+        try {
+            const user = await db.get(query, [email, senha]);
+            return user;
+        } catch (error: any) {
+            console.error("Erro ao buscar usuário no banco de dados", error.message);
+            throw new Error("Não foi possível autenticar o usuário");
+        }
     }
 
     async editarConta(dados: editarUsuarioDTO): Promise<Omit<User, "password" | "tipo">> {
