@@ -1,7 +1,7 @@
 import { SlotRepository } from "../repository/SlotRepository";
 import { Slot } from "../models/SlotModel";
 import { BuscarDisponibilidadeDTO, cadastrarSlotDTO } from "../dto/QuadraDTO";
-import { Database } from "sqlite";
+import sql from "mssql";
 
 export class SlotService {
     private repository: SlotRepository;
@@ -10,7 +10,10 @@ export class SlotService {
         this.repository = repository;
     }
 
-    async cadastrarSlot(slotData: Omit<cadastrarSlotDTO, "slots">, db: Database): Promise<void> {
+    async cadastrarSlot(
+        slotData: Omit<cadastrarSlotDTO, "slots">,
+        transaction: sql.Transaction
+    ): Promise<void> {
         try {
             const dias_funcionamento = JSON.parse(slotData.dias_funcionamento);
             const { quadra_id, horario_inicio, horario_fim, slot } = slotData;
@@ -46,7 +49,7 @@ export class SlotService {
                 }
             }
 
-            await this.repository.criar(slots, db);
+            await this.repository.criar(slots, transaction);
         } catch (error) {
             console.error("Erro ao criar slot", error);
             throw new Error("Erro ao criar slot");
@@ -57,7 +60,7 @@ export class SlotService {
         return await this.repository.buscarSlotsDisponiveis(dados);
     }
 
-    async alterarDisponibilidade(slotId: string, db: Database): Promise<boolean> {
-        return await this.repository.alterarDisponibilidade(slotId, db);
+    async alterarDisponibilidade(slotId: string, transaction: sql.Transaction): Promise<boolean> {
+        return await this.repository.alterarDisponibilidade(slotId, transaction);
     }
 }

@@ -1,33 +1,39 @@
-import { open, Database } from "sqlite";
 import { QuadraRepository } from "../repository/QuadraRepository";
 import { SlotService } from "./SlotService";
 import { FileService } from "./FileService";
 import { Quadra } from "../models/QuadraModel";
-import sqlite3 from 'sqlite3';
+import { getSqlConnection } from "../dbconnection";
+import sql from "mssql";
 
 export class QuadraService {
     private quadraRepository: QuadraRepository;
     private slotService: SlotService;
     private fileService: FileService;
-    private dbPromise: Promise<Database>;
 
     constructor(repository: QuadraRepository, slotService: SlotService, fileService: FileService) {
         this.quadraRepository = repository;
         this.slotService = slotService;
         this.fileService = fileService;
-        this.dbPromise = open({ filename: "./database.sqlite", driver: sqlite3.Database }); // ✅ Initialize database connection
     }
 
+    async cadastrarQuadra(
+        dados: Quadra,
+        files: { courtImage: Express.Multer.File[], courtDocument: Express.Multer.File[] }
+    ): Promise<Quadra> {
+        const pool = await getSqlConnection();
+        const transaction = new sql.Transaction(pool);
 
-    async cadastrarQuadra(dados: Quadra, files: { courtImage: Express.Multer.File[], courtDocument: Express.Multer.File[] }): Promise<Quadra> {
-        const db = await this.dbPromise;
         try {
-            await db.run("BEGIN TRANSACTION");
-    
+            await transaction.begin();
+
             const courtImageUrl = await this.fileService.uploadImage(files.courtImage[0]);
             const courtDocumentUrl = await this.fileService.uploadImage(files.courtDocument[0]);
-    
-            const novaQuadra = await this.quadraRepository.criarQuadra({ ...dados, courtImageUrl, courtDocumentUrl }, db);
+
+            // Pass the transaction to the repository
+            const novaQuadra = await this.quadraRepository.criarQuadra(
+                { ...dados, courtImageUrl, courtDocumentUrl },
+                transaction
+            );
 
             await this.slotService.cadastrarSlot({
                 quadra_id: novaQuadra.id!,
@@ -35,13 +41,12 @@ export class QuadraService {
                 horario_fim: novaQuadra.selectedTimeEnd,
                 dias_funcionamento: novaQuadra.selectedDays,
                 slot: novaQuadra.slot,
-            }, db);
-    
-            await db.run("COMMIT");
+            }, transaction);
+
+            await transaction.commit();
             return novaQuadra;
-    
         } catch (error) {
-            await db.run("ROLLBACK");
+            await transaction.rollback();
             console.error("Erro ao cadastrar quadra:", error);
             throw new Error("Erro ao processar quadra e slots");
         }

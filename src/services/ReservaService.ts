@@ -1,40 +1,42 @@
 import { ReservaRepository } from "../repository/ReservaRepository";
 import { PagamentoService } from "./PagamentoService";
 import { ReservarQuadraDTO } from "../dto/QuadraDTO";
-import sqlite3 from "sqlite3";
-import { open, Database } from "sqlite";
 import { Reserva } from "../models/ReservaModel";
 import { SlotService } from "./SlotService";
+import { getSqlConnection } from "../dbconnection";
+import sql from "mssql";
 
 export class ReservaService {
     private reservaRepository: ReservaRepository;
     private pagamentoService: PagamentoService;
     private slotService: SlotService;
-    private dbPromise: Promise<Database>;
 
     constructor(reservaRepository: ReservaRepository, pagamentoService: PagamentoService, slotService: SlotService) {
         this.reservaRepository = reservaRepository;
         this.pagamentoService = pagamentoService;
         this.slotService = slotService;
-        this.dbPromise = open({ filename: "./database.sqlite", driver: sqlite3.Database });
     }
 
     async criarReserva(dados: ReservarQuadraDTO): Promise<Reserva> {
-        const db = await this.dbPromise;
+        const pool = await getSqlConnection();
+        const transaction = new sql.Transaction(pool);
 
         try {
-            await db.run("BEGIN TRANSACTION");
+            await transaction.begin();
 
-            const pagamentoId = await this.pagamentoService.criarPagamento(dados, db);
+            const pagamentoId = await this.pagamentoService.criarPagamento(dados, transaction);
 
-            const reserva = await this.reservaRepository.criarReserva({...dados, pagamentoId: pagamentoId.toString()}, db);
+            const reserva = await this.reservaRepository.criarReserva(
+                { ...dados, pagamentoId: pagamentoId.toString() },
+                transaction
+            );
 
-            await this.slotService.alterarDisponibilidade(dados.slotId, db);
+            await this.slotService.alterarDisponibilidade(dados.slotId, transaction);
 
-            await db.run("COMMIT");
+            await transaction.commit();
             return reserva;
         } catch (error) {
-            await db.run("ROLLBACK");
+            await transaction.rollback();
             console.error("Erro ao processar reserva:", error);
             throw new Error("Erro ao criar reserva");
         }
