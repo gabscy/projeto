@@ -18,6 +18,7 @@ import { useParams} from 'react-router-dom';
 import { useQuery,  } from '@tanstack/react-query';
 import { ptBR } from 'date-fns/locale';
 import {  ClockIcon } from 'lucide-react'; 
+import Cookies from 'js-cookie';
 
 import {
 	Popover,
@@ -43,6 +44,10 @@ function BuscarQuadrasView() {
 	const [slots, setSlots] = useState<Slot[]>([])
 	const [selectedSlot, setSelectedSlot] = useState<Slot | null>()
 
+	const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+	const [tokenLoading, setTokenLoading] = useState<boolean>(true);
+	const [tokenError, setTokenError] = useState<string | null>(null);
+
 	interface Slot {
 		id: number;
 		quadra_id: number;
@@ -51,6 +56,63 @@ function BuscarQuadrasView() {
 		horario_fim: number;
 		available: number;
 	}
+
+
+	//Para autenticacao
+	useEffect(() => {
+		const checkTokenAndValidate = async () => {
+		setTokenLoading(true);
+		setTokenError(null);
+
+		const token = Cookies.get('authToken'); 
+
+		if (token) {
+			console.log('Cookie de token encontrado:', token);
+			try {
+			// Fazendo a requisição para validar o token
+			const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+				method: 'GET', 
+				headers: {
+				'Authorization': `Bearer ${token}`, // Enviando o token 
+				},
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				if (data.valid) { 
+				setIsValidToken(true);
+				console.log('Token válido!');
+				} else {
+				setIsValidToken(false);
+				console.log('Token inválido ou expirado.');
+				Cookies.remove('authToken');
+				}
+			} else {
+				const errorData = await response.json();
+				setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
+				setIsValidToken(false);
+				console.error('Erro na resposta da validação do token:', response.status, errorData);
+				Cookies.remove('authToken');
+			}
+			} catch (erro) {
+			setTokenError(`Erro na requisição.`);
+			setIsValidToken(false);
+			console.error('Erro na requisição de validação do token:', erro);
+			Cookies.remove('authToken');
+			} finally {
+			setTokenLoading(false);
+			}
+		} else {
+			console.log('Cookie de token não encontrado.');
+			setIsValidToken(false);
+			setTokenLoading(false);
+			navigate("/login")
+		}
+		};
+
+		checkTokenAndValidate();
+	}, []);
+
 
 
 	const formatDate = (date: Date | undefined): string => {
@@ -63,8 +125,9 @@ function BuscarQuadrasView() {
 
 	const fetchQuadra = async (id : string) => {
 		
-        const response = await fetch(`http://localhost:3000/quadra/${id}`);
+        const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra/${id}`);
         if (!response.ok) {
+
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -87,9 +150,12 @@ function BuscarQuadrasView() {
 	const handleBuscarSlots = async () => {
 		try{
 			const formattedDate = formatDate(date);
-		
-			const response = await fetch(`http://localhost:3000/disponibilidade-quadra?date=${formattedDate}&quadraId=${id}`)
+			
+			console.log(formattedDate)
+			const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/disponibilidade-quadra?date=${formattedDate}&quadraId=${id}`)
 			setSlots(await response.json())
+			
+				
 		}
 		catch(err){
 			alert("Something went wrong")
@@ -124,8 +190,6 @@ function BuscarQuadrasView() {
 			setSelectedSlot(null)
 			handleBuscarSlots()
 		}
-	
-		console.log(quadra)
 	}, [date])
 
 	
@@ -187,7 +251,7 @@ function BuscarQuadrasView() {
 						<AccordionItem value="item-1" >
 							<AccordionTrigger className='max-w-40 font-bold text-xl'>Descrição</AccordionTrigger>
 							<AccordionContent>
-								{quadra.description}
+								<p style={{ whiteSpace: 'pre-wrap' }}>{quadra.description}</p>
 							</AccordionContent>
 						</AccordionItem>
 					</Accordion>
@@ -196,7 +260,7 @@ function BuscarQuadrasView() {
 						<AccordionItem value="item-1" >
 							<AccordionTrigger className='max-w-40 font-bold text-xl'>Regras</AccordionTrigger>
 							<AccordionContent>
-								{quadra.rules}
+								<div style={{ whiteSpace: 'pre-wrap' }}>{quadra.rules}</div>
 							</AccordionContent>
 						</AccordionItem>
 					</Accordion>
@@ -244,7 +308,7 @@ function BuscarQuadrasView() {
 								<Button
 									variant="outline"
 									className="w-[280px] justify-start text-left font-normal"
-									disabled={!date}
+									disabled={!date || slots.length <=0}
 								>
 									<ClockIcon className="mr-2 h-4 w-4" />
 									{selectedSlot? `${formatTime(selectedSlot.horario_inicio)} - ${formatTime(selectedSlot.horario_fim)}` : "Selecionar Horário"}
@@ -273,8 +337,10 @@ function BuscarQuadrasView() {
 										const timeStr = `${formatTime(slot.horario_inicio)} - ${formatTime(slot.horario_fim)}`;
 										const isSelected = selectedSlot == slot;
 										return (
-											<Card
+											<Button
 											key={slot.id}
+											disabled={slot.available === 1 || isPast}
+											variant={"outline"}
 											className={cn(
 												"px-3 py-1.5 rounded-md cursor-pointer transition-colors duration-200",
 												"flex items-center justify-between",
@@ -291,7 +357,7 @@ function BuscarQuadrasView() {
 											>
 												<span>{timeStr}</span>
 												
-											</Card>
+											</Button>
 									)})}
 									</div>
 								</div>
@@ -301,7 +367,7 @@ function BuscarQuadrasView() {
 						(<Label>Selecione uma Data</Label>)
 						}
 
-						
+						{slots.length <=0 && <Label>Nenhum horário disponível</Label> }
 				
 					</div>		
 					</div>

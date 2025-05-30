@@ -18,7 +18,7 @@ function App() {
           <Route path="/publicar-quadra" element={<PublicarQuadraView />} />
           <Route path="/detalhes-quadra/:id" element={<DetalhesQuadraView />} />
           <Route path="/reservar-quadra/:id/:slotId/:date" element={<ReservarQuadraView />} />
-          <Route path="/login" element={<LoginView />} />
+          <Route path="/:anterior?/login" element={<LoginView />} />
         </Routes>
       </QueryClientProvider>
     </BrowserRouter>

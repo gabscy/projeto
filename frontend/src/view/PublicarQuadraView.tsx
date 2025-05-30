@@ -57,6 +57,7 @@ function PublicarQuadraView() {
   const [first, setFirst] = useState<Boolean>(true)
 
   const navigate = useNavigate();
+  
 
 
   //Para autenticacao
@@ -71,10 +72,10 @@ function PublicarQuadraView() {
         console.log('Cookie de token encontrado:', token);
         try {
           // Fazendo a requisição para validar o token
-          const response = await fetch('https://api.seusite.com/validate-token', { 
-            method: 'POST', 
+          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+            method: 'GET', 
             headers: {
-              'Authorization': `Bearer ${token}`, // Enviando o token no cabeçalho Authorization
+              'Authorization': `Bearer ${token}`, // Enviando o token 
             },
           });
 
@@ -107,7 +108,7 @@ function PublicarQuadraView() {
         console.log('Cookie de token não encontrado.');
         setIsValidToken(false);
         setTokenLoading(false);
-        navigate("/login")
+        navigate("/publicar-quadra/login")
       }
     };
 
@@ -115,9 +116,6 @@ function PublicarQuadraView() {
   }, []);
 
   
-
-
-
 
     // Gera opções de hora com base em um horário de início 
   const generateTimeOptions = (startTime?: Date) => {
@@ -328,7 +326,7 @@ function PublicarQuadraView() {
       console.log(formData)
       //publicar dados
       try {
-        const response = await fetch('http://localhost:3000/quadra', {
+        const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra', {
           method: 'POST',
           body: formData,
         });
