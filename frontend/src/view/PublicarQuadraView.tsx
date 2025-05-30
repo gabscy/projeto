@@ -20,11 +20,6 @@ import Cookies from 'js-cookie';
 
 
 function PublicarQuadraView() {
-  //autenticacao
-  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
-  const [tokenLoading, setTokenLoading] = useState<boolean>(true);
-  const [tokenError, setTokenError] = useState<string | null>(null);
-
 
   //tempo de funcionamento
   const [selectedTimeStart, setSelectedTimeStart] = useState<Date | undefined>(undefined);
@@ -58,63 +53,54 @@ function PublicarQuadraView() {
 
   const navigate = useNavigate();
   
-
-
-  //Para autenticacao
-   useEffect(() => {
+  // funcao para realizar autenticacao ao entrar na pagina
+  useEffect(() => {
     const checkTokenAndValidate = async () => {
-      setTokenLoading(true);
-      setTokenError(null);
 
-      const token = Cookies.get('authToken'); 
+        const token = Cookies.get('authToken'); 
+        //verifica se ja há um token
+        if (token) {
 
-      if (token) {
-        console.log('Cookie de token encontrado:', token);
-        try {
-          // Fazendo a requisição para validar o token
-          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
-            method: 'GET', 
-            headers: {
-              'Authorization': `Bearer ${token}`, // Enviando o token 
-            },
-          });
+            console.log('Cookie de token encontrado:', token);
+            try {
+                //verifica se o token é valido
+                const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+                    method: 'GET', 
+                    headers: {
+                    'Authorization': `Bearer ${token}`, // Enviando o token 
+                    },
+                });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.valid) { 
-              setIsValidToken(true);
-              console.log('Token válido!');
-            } else {
-              setIsValidToken(false);
-              console.log('Token inválido ou expirado.');
-              Cookies.remove('authToken');
-            }
-          } else {
-            const errorData = await response.json();
-            setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
-            setIsValidToken(false);
-            console.error('Erro na resposta da validação do token:', response.status, errorData);
-            Cookies.remove('authToken');
-          }
-        } catch (erro) {
-          setTokenError(`Erro na requisição.`);
-          setIsValidToken(false);
-          console.error('Erro na requisição de validação do token:', erro);
-          Cookies.remove('authToken');
-        } finally {
-          setTokenLoading(false);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.valid) { 
+                        //se token é valido
+                        console.log('Token válido!');
+                    } else {
+                        //remove token se é invalido
+                        console.log('Token inválido ou expirado.');
+                        Cookies.remove('authToken');
+                        navigate("/publicar-quadra/login")
+                    }
+                } else {
+                    //erro ao obter token
+                    const errorData = await response.json();
+                    console.error('Erro na resposta da validação do token:', response.status, errorData);
+                    Cookies.remove('authToken');
+                }
+
+            } catch (erro) {
+                console.error('Erro na requisição de validação do token:', erro);
+                Cookies.remove('authToken');
+            } 
+
+        } else {
+            console.log('Cookie de token não encontrado.');
+            navigate("publicar-quadra/login")
         }
-      } else {
-        console.log('Cookie de token não encontrado.');
-        setIsValidToken(false);
-        setTokenLoading(false);
-        navigate("/publicar-quadra/login")
-      }
     };
-
     checkTokenAndValidate();
   }, []);
-
   
 
     // Gera opções de hora com base em um horário de início 
@@ -202,11 +188,13 @@ function PublicarQuadraView() {
     
   };
 
+  //atualiza imagem
   const handleCourtImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null; // Get the first selected file or null
     setCourtImage(file);
   };
 
+  //atualiza documento
   const handleCourtDocumentChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null; // Get the first selected file or null
     setCourtDocument(file);
@@ -303,6 +291,8 @@ function PublicarQuadraView() {
     // ... (seu código de validação e criação do formData) ...
 
     if (isFormValid) {
+      
+      //adiciona informacoes ao formData
       const formData = new FormData();
       formData.append("courtName", courtName);
       formData.append("courtType", courtType);

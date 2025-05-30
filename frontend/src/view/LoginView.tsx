@@ -12,10 +12,10 @@ import { Separator } from '@/components/ui/separator';
 
 function LoginView() {
 
+    //variaveis 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const { anterior } = useParams();
     const navigate = useNavigate();
 
@@ -41,13 +41,16 @@ function LoginView() {
         return isValid;
     };
 
+
+    //tenta enviar o form quando botao é apertado
     const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setIsSubmitting(true);
+
 
         if (validateForm()) {
         try {
-            console.log("valido")
+
+            //se form for válido, envia para api
 
             const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/login', {
             method: 'POST',
@@ -59,28 +62,31 @@ function LoginView() {
 
             if (response.ok) {
                 const data = await response.json();
-  
-                const authToken = data.token;
-                Cookies.set('authToken', authToken, { expires: 7 }); // Set cookie to expire in 7 days
-                console.log('Login successful, token saved:', authToken);
                 
+                //cria um cookie para armazenar o token
+                const authToken = data.token;
+                Cookies.set('authToken', authToken, { expires: 7 }); 
+                console.log('Login bem succedido, token:', authToken);
+                
+                //navega de volta ao site
                 if(anterior)
                     navigate(`/${anterior}`);
                 else
                     navigate(`/`);
             } else {
+                //login invalido
                 const errorData = await response.json();
                 setFormErrors({ general: errorData.message || 'Credenciais inválidas.' });
-                console.error('Login failed:', errorData);
+                console.error('Falha no lign:', errorData);
             }
             
         } catch (error) {
+            //erro no login
             setFormErrors({ general: 'Erro ao conectar ao servidor. Tente novamente mais tarde.' });
-            console.error('Network error during login:', error);
+            console.error('Erro durante login:', error);
         }
         }
         console.log(formErrors)
-        setIsSubmitting(false);
     };
 
 
@@ -93,7 +99,7 @@ function LoginView() {
                         <Label className='text-2xl font-bold'>Login</Label>
                         <Separator/>
                     </div>
-                    
+                
 
                     <div className='flex flex-col gap-4'>
                         <Label className='text-lg '>Email {formErrors.email && <span className='text-red-600'>*</span>}</Label>

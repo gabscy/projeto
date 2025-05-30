@@ -10,88 +10,75 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@radix-ui/react-separator';
 import { FadeLoader } from "react-spinners"
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 function ReservarQuadraView() {
 
-    const {id, slotId ,date }  = useParams()
-    const [nomeCapitao, setNomeCapitao] = useState('');
-    const [cpfCapitao, setCpfCapitao] = useState('');
-    const [metodoPagamento, setMetodoPagamento] = useState('');
-    const [numeroCartao, setNumeroCartao] = useState('');
-    const [cvv, setCvv] = useState('');
-    const [vencimento, setVencimento] = useState('');
-    const [nomeCartao, setNomeCartaoTitular] = useState('');
-    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-    const [isFormValid, setIsFormValid] = useState(false);
-    const [first, setFirst] = useState(true);
-    const [slot, setSlot] = useState<Slot>()
-    	
-    //autenticacao
-    const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
-    const [tokenLoading, setTokenLoading] = useState<boolean>(true);
-    const [tokenError, setTokenError] = useState<string | null>(null);
+  const {id, slotId ,date }  = useParams()
+  const [nomeCapitao, setNomeCapitao] = useState('');
+  const [cpfCapitao, setCpfCapitao] = useState('');
+  const [metodoPagamento, setMetodoPagamento] = useState('');
+  const [numeroCartao, setNumeroCartao] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [vencimento, setVencimento] = useState('');
+  const [nomeCartao, setNomeCartaoTitular] = useState('');
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [first, setFirst] = useState(true);
+  const [slot, setSlot] = useState<Slot>()
+    
+  const navigate = useNavigate();
 
-
-
-    //Para autenticacao
-   useEffect(() => {
+  // funcao para realizar autenticacao ao entrar na pagina
+  useEffect(() => {
     const checkTokenAndValidate = async () => {
-      setTokenLoading(true);
-      setTokenError(null);
 
-      const token = Cookies.get('authToken'); 
+        const token = Cookies.get('authToken'); 
+        //verifica se ja há um token
+        if (token) {
 
-      if (token) {
-        console.log('Cookie de token encontrado:', token);
-        try {
-          // Fazendo a requisição para validar o token
-          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
-            method: 'GET', 
-            headers: {
-              'Authorization': `Bearer ${token}`, // Enviando o token 
-            },
-          });
+            console.log('Cookie de token encontrado:', token);
+            try {
+                //verifica se o token é valido
+                const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+                    method: 'GET', 
+                    headers: {
+                    'Authorization': `Bearer ${token}`, // Enviando o token 
+                    },
+                });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.valid) { 
-              setIsValidToken(true);
-              console.log('Token válido!');
-            } else {
-              setIsValidToken(false);
-              console.log('Token inválido ou expirado.');
-              Cookies.remove('authToken');
-            }
-          } else {
-            const errorData = await response.json();
-            setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
-            setIsValidToken(false);
-            console.error('Erro na resposta da validação do token:', response.status, errorData);
-            Cookies.remove('authToken');
-          }
-        } catch (erro) {
-          setTokenError(`Erro na requisição.`);
-          setIsValidToken(false);
-          console.error('Erro na requisição de validação do token:', erro);
-          Cookies.remove('authToken');
-        } finally {
-          setTokenLoading(false);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.valid) { 
+                        //se token é valido
+                        console.log('Token válido!');
+                    } else {
+                        //remove token se é invalido
+                        console.log('Token inválido ou expirado.');
+                        Cookies.remove('authToken');
+                        navigate("/publicar-quadra/login")
+                    }
+                } else {
+                    //erro ao obter token
+                    const errorData = await response.json();
+                    console.error('Erro na resposta da validação do token:', response.status, errorData);
+                    Cookies.remove('authToken');
+                }
+
+            } catch (erro) {
+                console.error('Erro na requisição de validação do token:', erro);
+                Cookies.remove('authToken');
+            } 
+
+        } else {
+            console.log('Cookie de token não encontrado.');
+            navigate("publicar-quadra/login")
         }
-      } else {
-        console.log('Cookie de token não encontrado.');
-        setIsValidToken(false);
-        setTokenLoading(false);
-        navigate("/login")
-      }
     };
-
     checkTokenAndValidate();
   }, []);
 
-  
-
-
-    interface Slot {
+  interface Slot {
 		id: number;
 		quadra_id: number;
 		date: string;
@@ -100,7 +87,8 @@ function ReservarQuadraView() {
 		available: number;
 	}
 
-    const formatTime = (hour: number): string => {
+  //formata data
+  const formatTime = (hour: number): string => {
 		const integerPart = Math.floor(hour);
 		const decimalPart = hour - integerPart;
 
@@ -111,34 +99,37 @@ function ReservarQuadraView() {
 	};
 
 
-   function findSlot(slots:Slot[], slotId: number) {
+  //encontra um especifico em uma lista de slots
+  function findSlot(slots:Slot[], slotId: number) {
     const slot = slots.find(slot => slot.id === slotId);
     
     if (slot) {
         return slot; 
     }
     return null; 
+  }
+
+  //obtem detalhes de uma quadra 
+  const fetchQuadra = async (id : string) => {
+    const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra/${id}`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const fetchQuadra = async (id : string) => {
-        const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra/${id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return response.json()
+    return response.json()
 
 	};
 
-    const fetchSlots = async () => {
-        const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/disponibilidade-quadra?date=${date}&quadraId=${id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json()
+  //obtem slots de uma quadra
+  const fetchSlots = async () => {
+    const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/disponibilidade-quadra?date=${date}&quadraId=${id}`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+    return response.json()
+  }
 
-	
+	//query para quadra
 	const { data: quadra, isFetching:quadraFetching,  error:erroQuadra } = useQuery({
 		queryKey: ['quadra', id],
 		queryFn: () => fetchQuadra(id!), // Add the non-null assertion operator here
@@ -146,35 +137,38 @@ function ReservarQuadraView() {
 		retry: 3,
 	});
 
-    if(erroQuadra){
-        alert("Something went wrong")
-    }
+  if(erroQuadra){
+      alert("Something went wrong")
+  }
 
-    const { data: slots,isFetching:slotFetching, refetch,  error:erroSlot } = useQuery({
+  //query para slots
+  const { data: slots,isFetching:slotFetching, refetch,  error:erroSlot } = useQuery({
 		queryKey: ['slots', id],
 		queryFn: fetchSlots, 
 		staleTime: 60 * 1000,
 		retry: 3,
 	});
 
-    if(erroSlot){
-        alert("Something went wrong")
-    }
+  if(erroSlot){
+      alert("Something went wrong")
+  }
 
-    useEffect(()=>{
-        console.log(slots)
-        if(!slots)
-            return
-        const currSlot = findSlot(slots, Number(slotId))
-        if(currSlot)
-            setSlot(currSlot)
-    },[slots])
+  
+  useEffect(()=>{
+      console.log(slots)
+      if(!slots)
+          return
+      const currSlot = findSlot(slots, Number(slotId))
+      if(currSlot)
+          setSlot(currSlot)
+  },[slots])
 
-    // Valida o formulário sempre que um campo relevante muda
-    useEffect(() => {
-        validateForm();
-    }, [nomeCapitao, cpfCapitao, metodoPagamento, numeroCartao, cvv, vencimento, nomeCartao]);
+  // Valida o formulário sempre que um campo relevante muda
+  useEffect(() => {
+      validateForm();
+  }, [nomeCapitao, cpfCapitao, metodoPagamento, numeroCartao, cvv, vencimento, nomeCartao]);
 
+    //verifica se o form esta correto
     const validateForm = () => {
         const errors: { [key: string]: string } = {};
         let isValid = true;
@@ -212,27 +206,27 @@ function ReservarQuadraView() {
         setIsFormValid(isValid);
     };
 
+  //tenta enviar formulario
    const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFirst(false);
 
     if (isFormValid) {
+      //obtem novamente os slots da data
         await refetch(); 
-      
 
         if (slots.length <= 0 || !slots) {
             console.log("Não foi possível obter os slots.");
             return; // Encerra a função se não houver slots
         }
        
+        //verifica novamente se o slot esta disponivel antes de finalizar pagamento
         const currSlot =  findSlot(slots, Number(slotId))
         if (currSlot?.available === 1 || !currSlot) {
             console.log("Slot indisponível.");
             alert("Horário indisponível")
             return;
         }
-
-            
 
         const reservaData = {
             quadraId: quadra.id, 
@@ -249,6 +243,8 @@ function ReservarQuadraView() {
         };
 
       try {
+
+        //envia detalhes de pagamento para api
         const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/reservar-quadra', {
           method: 'POST',
           headers: {
@@ -259,19 +255,25 @@ function ReservarQuadraView() {
 
         console.log(await response.json())
         if (response.ok) {
+
+          //reserva finalizada
           alert("reserva realizada")
           console.log('Reserva realizada com sucesso!');
+
         } else {
+          //reserva finalizada
           console.error('Erro ao realizar a reserva:', response.status);
           alert("Falha ao realizar a reserva - slot indisponível")
         }
       } catch (error) {
+        //ao fazer muitas requisicoes, requisicoes futuras nao sao aceitas
         console.error("Erro:", error);
         alert("Muitas requisicoes, por favor espera")
       }
     }
   };
 
+  //atualiza CPF
   const handleCPFChange = (event: React.ChangeEvent<HTMLInputElement>) =>{
      const newValue = event.target.value.replace(/[^0-9]/g, '');
         event.target.value = newValue
@@ -279,6 +281,7 @@ function ReservarQuadraView() {
         setCpfCapitao(newValue);
   }
   
+  //atualiza cvv
   const handleCvvChange = (event: React.ChangeEvent<HTMLInputElement>) =>{
      const newValue = event.target.value.replace(/[^0-9]/g, '');
         event.target.value = newValue
@@ -286,6 +289,7 @@ function ReservarQuadraView() {
         setCvv(newValue);
   }
 
+  //atualiza vencimento
  const handleChangeVencimento = (event: React.ChangeEvent<HTMLInputElement>) => {
     let value = event.target.value.replace(/\D/g, ''); 
     if (value.length > 4) {
