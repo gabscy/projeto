@@ -4,6 +4,7 @@ import PublicarQuadraView from './view/PublicarQuadraView';
 import BuscarQuadrasView from './view/BuscarQuadrasView';
 import DetalhesQuadraView from './view/DetalhesQuadraView'
 import ReservarQuadraView from './view/ReservarQuadraView'
+import LoginView from './view/LoginView';
 import { QueryClient, QueryClientProvider} from "@tanstack/react-query"
 
 const queryClient = new QueryClient()
@@ -17,6 +18,7 @@ function App() {
           <Route path="/publicar-quadra" element={<PublicarQuadraView />} />
           <Route path="/detalhes-quadra/:id" element={<DetalhesQuadraView />} />
           <Route path="/reservar-quadra/:id/:slotId/:date" element={<ReservarQuadraView />} />
+          <Route path="/:anterior?/login" element={<LoginView />} />
         </Routes>
       </QueryClientProvider>
     </BrowserRouter>

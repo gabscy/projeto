@@ -9,6 +9,7 @@ import { useParams} from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@radix-ui/react-separator';
 import { FadeLoader } from "react-spinners"
+import Cookies from 'js-cookie';
 
 function ReservarQuadraView() {
 
@@ -25,6 +26,70 @@ function ReservarQuadraView() {
     const [first, setFirst] = useState(true);
     const [slot, setSlot] = useState<Slot>()
     	
+    //autenticacao
+    const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+    const [tokenLoading, setTokenLoading] = useState<boolean>(true);
+    const [tokenError, setTokenError] = useState<string | null>(null);
+
+
+
+    //Para autenticacao
+   useEffect(() => {
+    const checkTokenAndValidate = async () => {
+      setTokenLoading(true);
+      setTokenError(null);
+
+      const token = Cookies.get('authToken'); 
+
+      if (token) {
+        console.log('Cookie de token encontrado:', token);
+        try {
+          // Fazendo a requisição para validar o token
+          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+            method: 'GET', 
+            headers: {
+              'Authorization': `Bearer ${token}`, // Enviando o token 
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.valid) { 
+              setIsValidToken(true);
+              console.log('Token válido!');
+            } else {
+              setIsValidToken(false);
+              console.log('Token inválido ou expirado.');
+              Cookies.remove('authToken');
+            }
+          } else {
+            const errorData = await response.json();
+            setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
+            setIsValidToken(false);
+            console.error('Erro na resposta da validação do token:', response.status, errorData);
+            Cookies.remove('authToken');
+          }
+        } catch (erro) {
+          setTokenError(`Erro na requisição.`);
+          setIsValidToken(false);
+          console.error('Erro na requisição de validação do token:', erro);
+          Cookies.remove('authToken');
+        } finally {
+          setTokenLoading(false);
+        }
+      } else {
+        console.log('Cookie de token não encontrado.');
+        setIsValidToken(false);
+        setTokenLoading(false);
+        navigate("/login")
+      }
+    };
+
+    checkTokenAndValidate();
+  }, []);
+
+  
+
 
     interface Slot {
 		id: number;
@@ -66,7 +131,7 @@ function ReservarQuadraView() {
 	};
 
     const fetchSlots = async () => {
-        const response = await fetch(`http://localhost:3000/disponibilidade-quadra?date=${date}&quadraId=${id}`);
+        const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/disponibilidade-quadra?date=${date}&quadraId=${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -152,7 +217,7 @@ function ReservarQuadraView() {
     setFirst(false);
 
     if (isFormValid) {
-        await refetch(); // Espera a função terminar e obtém o resultado
+        await refetch(); 
       
 
         if (slots.length <= 0 || !slots) {
@@ -184,7 +249,7 @@ function ReservarQuadraView() {
         };
 
       try {
-        const response = await fetch('http://localhost:3000/reservar-quadra', {
+        const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/reservar-quadra', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -192,15 +257,17 @@ function ReservarQuadraView() {
           body: JSON.stringify(reservaData),
         });
 
+        console.log(await response.json())
         if (response.ok) {
           alert("reserva realizada")
           console.log('Reserva realizada com sucesso!');
         } else {
           console.error('Erro ao realizar a reserva:', response.status);
-          alert("Falha ao realizar a reserva")
+          alert("Falha ao realizar a reserva - slot indisponível")
         }
       } catch (error) {
         console.error("Erro:", error);
+        alert("Muitas requisicoes, por favor espera")
       }
     }
   };
@@ -249,7 +316,7 @@ function ReservarQuadraView() {
                 <Label>Preço : <span className="font-normal">{quadra.price} R$</span></Label>
             </div>
             
-         
+          
         </Card>
 
        )} 

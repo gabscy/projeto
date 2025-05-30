@@ -16,7 +16,16 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import Cookies from 'js-cookie';
+
+
 function PublicarQuadraView() {
+  //autenticacao
+  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+  const [tokenLoading, setTokenLoading] = useState<boolean>(true);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+
+
   //tempo de funcionamento
   const [selectedTimeStart, setSelectedTimeStart] = useState<Date | undefined>(undefined);
   const [selectedTimeEnd, setSelectedTimeEnd] = useState<Date | undefined>(undefined);
@@ -48,7 +57,65 @@ function PublicarQuadraView() {
   const [first, setFirst] = useState<Boolean>(true)
 
   const navigate = useNavigate();
+  
 
+
+  //Para autenticacao
+   useEffect(() => {
+    const checkTokenAndValidate = async () => {
+      setTokenLoading(true);
+      setTokenError(null);
+
+      const token = Cookies.get('authToken'); 
+
+      if (token) {
+        console.log('Cookie de token encontrado:', token);
+        try {
+          // Fazendo a requisição para validar o token
+          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+            method: 'GET', 
+            headers: {
+              'Authorization': `Bearer ${token}`, // Enviando o token 
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.valid) { 
+              setIsValidToken(true);
+              console.log('Token válido!');
+            } else {
+              setIsValidToken(false);
+              console.log('Token inválido ou expirado.');
+              Cookies.remove('authToken');
+            }
+          } else {
+            const errorData = await response.json();
+            setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
+            setIsValidToken(false);
+            console.error('Erro na resposta da validação do token:', response.status, errorData);
+            Cookies.remove('authToken');
+          }
+        } catch (erro) {
+          setTokenError(`Erro na requisição.`);
+          setIsValidToken(false);
+          console.error('Erro na requisição de validação do token:', erro);
+          Cookies.remove('authToken');
+        } finally {
+          setTokenLoading(false);
+        }
+      } else {
+        console.log('Cookie de token não encontrado.');
+        setIsValidToken(false);
+        setTokenLoading(false);
+        navigate("/publicar-quadra/login")
+      }
+    };
+
+    checkTokenAndValidate();
+  }, []);
+
+  
 
     // Gera opções de hora com base em um horário de início 
   const generateTimeOptions = (startTime?: Date) => {

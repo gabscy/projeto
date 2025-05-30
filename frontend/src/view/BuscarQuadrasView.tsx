@@ -15,12 +15,19 @@ import { FaStar } from "react-icons/fa";
 import { Button } from '../components/ui/button';
 import {  Link } from 'react-router-dom';
 import { FadeLoader } from "react-spinners"
-
-
-import { useQuery } from '@tanstack/react-query';
-
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
+import { useQuery} from '@tanstack/react-query';
 
 function BuscarQuadrasView() {
+
+     const navigate = useNavigate();
+
+    //autenticacao
+    const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+    const [tokenLoading, setTokenLoading] = useState<boolean>(true);
+    const [tokenError, setTokenError] = useState<string | null>(null);
+
 
     const [selectedTypes, setSelectedTypes] = useState<Record<string, boolean>>({
        futebol: true,
@@ -34,6 +41,69 @@ function BuscarQuadrasView() {
     const [maxPrice, setMaxPrice] = useState<number | string>('');
     const [filteredData, setFilteredData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const removeAuthCookie = () => {
+    Cookies.remove('authToken');
+    console.log('Authentication cookie removed.');
+  };
+    
+    //Para autenticacao
+   useEffect(() => {
+    const checkTokenAndValidate = async () => {
+      setTokenLoading(true);
+      setTokenError(null);
+
+      const token = Cookies.get('authToken'); 
+
+      if (token) {
+        console.log('Cookie de token encontrado:', token);
+        try {
+          // Fazendo a requisição para validar o token
+          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+            method: 'GET', 
+            headers: {
+              'Authorization': `Bearer ${token}`, // Enviando o token 
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.valid) { 
+              setIsValidToken(true);
+              console.log('Token válido!');
+            } else {
+              setIsValidToken(false);
+              console.log('Token inválido ou expirado.');
+              Cookies.remove('authToken');
+            }
+          } else {
+            const errorData = await response.json();
+            setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
+            setIsValidToken(false);
+            console.error('Erro na resposta da validação do token:', response.status, errorData);
+            Cookies.remove('authToken');
+          }
+        } catch (erro) {
+          setTokenError(`Erro na requisição.`);
+          setIsValidToken(false);
+          console.error('Erro na requisição de validação do token:', erro);
+          Cookies.remove('authToken');
+        } finally {
+          setTokenLoading(false);
+        }
+      } else {
+        console.log('Cookie de token não encontrado.');
+        setIsValidToken(false);
+        setTokenLoading(false);
+        navigate("/login")
+      }
+    };
+
+    checkTokenAndValidate();
+  }, []);
+
+
+
 
      const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
          setSearchTerm(event.target.value);
@@ -158,6 +228,8 @@ function BuscarQuadrasView() {
                 <h6 className='text-gray-700'>Buscar quadras perto de você</h6>
   
             </div>
+
+            <Button onClick={removeAuthCookie}></Button>
         </section>
 
         
