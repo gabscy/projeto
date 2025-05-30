@@ -58,12 +58,15 @@ function PublicarQuadraView() {
     const checkTokenAndValidate = async () => {
 
         const token = Cookies.get('authToken'); 
-        //verifica se ja há um token
-        if (token) {
 
+        //verifica se ja há um token
+
+        if (token) {
             console.log('Cookie de token encontrado:', token);
             try {
+
                 //verifica se o token é valido
+                
                 const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
                     method: 'GET', 
                     headers: {
@@ -76,6 +79,7 @@ function PublicarQuadraView() {
                     if (data.valid) { 
                         //se token é valido
                         console.log('Token válido!');
+
                     } else {
                         //remove token se é invalido
                         console.log('Token inválido ou expirado.');
@@ -231,13 +235,10 @@ function PublicarQuadraView() {
       errors.courtCity = "Por favor, selecione a cidade da quadra"
       isValid= false;
     }
-
     if (!courtCEP.trim() || courtCEP.trim().length < 8) {
       errors.courtCEP = "Por favor, digite o CEP da quadra.";
       isValid = false;
-
     }
-
     if (!courtDescription.trim()) {
       errors.courtDescription = "Por favor, insira a descrição da quadra.";
       isValid = false;
@@ -246,6 +247,7 @@ function PublicarQuadraView() {
       errors.courtRules = "Por favor, insira as regras da quadra.";
       isValid = false;
     }
+
     if (!Object.values(selectedDays).some(Boolean)) {
       errors.selectedDays = "Por favor, selecione pelo menos um dia de funcionamento.";
       isValid = false;
@@ -278,6 +280,7 @@ function PublicarQuadraView() {
       isValid = false
     }
    
+    //inclui erros na lista
     setFormErrors(errors);
     setIsFormValid(isValid);
  
@@ -287,8 +290,6 @@ function PublicarQuadraView() {
   const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFirst(false);
-
-    // ... (seu código de validação e criação do formData) ...
 
     if (isFormValid) {
       
