@@ -1,7 +1,7 @@
 import { PagamentoRepository } from "../repository/PagamentoRepository";
 import { Pagamento } from "../models/PagamentoModel";
 import { ReservarQuadraDTO } from "../dto/QuadraDTO";
-import { Database } from 'sqlite';
+import sql from "mssql";
 
 export class PagamentoService {
     private repository: PagamentoRepository;
@@ -10,7 +10,7 @@ export class PagamentoService {
         this.repository = repository;
     }
 
-    async criarPagamento(dados: ReservarQuadraDTO, db: Database): Promise<number> {
+    async criarPagamento(dados: ReservarQuadraDTO, transaction: sql.Transaction): Promise<number> {
         if (parseFloat(dados.valor) <= 0) {
             throw new Error("O valor do pagamento deve ser positivo.");
         }
@@ -26,12 +26,11 @@ export class PagamentoService {
             dados.nomeCartao
         );
 
-        const pagamentoCriado = await this.repository.criarPagamento(dadosPagamento, db);
+        const pagamentoCriado = await this.repository.criarPagamento(dadosPagamento, transaction);
 
         if (pagamentoCriado) {
             return pagamentoCriado;
         }
-        throw new Error("Erro ao criar pagamento")
-
+        throw new Error("Erro ao criar pagamento");
     }
 }

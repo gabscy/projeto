@@ -56,3 +56,8 @@ export interface editarUsuarioDTO {
     cidade?: string,
     estado?: string,
 }
+
+export interface tipoDTO { 
+    id: string,
+    tipo: string 
+}

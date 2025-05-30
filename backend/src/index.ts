@@ -3,24 +3,35 @@ import { QuadraController } from './controller/QuadraController';
 import { SlotController } from './controller/SlotController';
 import multer from 'multer';
 import { ReservaController } from './controller/ReservaController';
-import dotenv from "dotenv";
 import { UserController } from './controller/UserController';
 import cors from "cors";
-
-dotenv.config();
+import { validateToken } from './middleware/validateToken';
+import { AuthController } from './controller/AuthController';
+import rateLimit from 'express-rate-limit';
 
 export const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const quadraController = new QuadraController();
 const slotController = new SlotController();
 const reservaController = new ReservaController();
 const userController = new UserController();
+const authController = new AuthController();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 app.use(express.json());
 app.use(cors());
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {message: "Tente novamente mais tarde"}
+});
+
+app.use(limiter);
 
 app.post("/quadra", upload.fields([
     { name: "courtImage", maxCount: 1 },
@@ -36,6 +47,10 @@ app.get('/buscar-quadras', async (req: Request, res: Response) => quadraControll
 app.put("/user/:id", async (req: Request, res: Response) => await userController.editarConta(req, res))
 
 app.get('/quadra/:id', async (req: Request, res: Response) => await quadraController.buscarInfoQuadra(req, res))
+
+app.post('/login', async (req: Request, res: Response) => await userController.login(req, res))
+
+app.get('/auth/validate', validateToken, (req: Request, res: Response) => authController.validate(req, res));
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
