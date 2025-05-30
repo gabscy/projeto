@@ -1,31 +1,24 @@
-import sqlite3 from "sqlite3";
-import { open, Database } from "sqlite";
 import { Reserva } from "../models/ReservaModel";
 import { AtualizarPagamentoReservaDTO } from "../dto/QuadraDTO";
+import { getSqlConnection } from "../dbconnection";
+import sql from "mssql";
 
 export class ReservaRepository {
-    private dbPromise: Promise<Database>;
-
     constructor() {
-        this.dbPromise = open({
-            filename: "./database.sqlite",
-            driver: sqlite3.Database,
-        });
-        this.upsertTabela();
+        this.ensureTableExists();
     }
 
-    private async upsertTabela(): Promise<void> {
-        const db = await this.dbPromise;
-
-        await db.exec("PRAGMA foreign_keys = ON;");
-
-        await db.exec(`
-            CREATE TABLE IF NOT EXISTS reservas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                quadra_id TEXT NOT NULL,
-                data TEXT NOT NULL,
-                pagamento_id TEXT,
-                slot_id TEXT NOT NULL UNIQUE,
+    private async ensureTableExists(): Promise<void> {
+        const pool = await getSqlConnection();
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='reservas' AND xtype='U')
+            CREATE TABLE reservas (
+                id INT IDENTITY(1,1) PRIMARY KEY,
+                quadra_id INT NOT NULL,
+                data DATE NOT NULL,
+                pagamento_id INT,
+                slot_id INT NOT NULL UNIQUE,
+                nome_capitao NVARCHAR(255),
                 FOREIGN KEY (quadra_id) REFERENCES quadras(id),
                 FOREIGN KEY (pagamento_id) REFERENCES pagamentos(id),
                 FOREIGN KEY (slot_id) REFERENCES slots(id)
@@ -33,15 +26,30 @@ export class ReservaRepository {
         `);
     }
 
-    async criarReserva(data: Reserva, db: Database): Promise<Reserva> {
+    async criarReserva(data: Reserva, transaction: sql.Transaction): Promise<Reserva> {
         try {
-            const result = await db.run(
-                "INSERT INTO reservas (quadra_id, data, pagamento_id, slot_id) VALUES (?,?,?,?)",
-                [data.quadraId, data.dataReserva, data.pagamentoId, data.slotId]
-            );
-            const id = result.lastID;
+            const request = transaction.request();
+            const result = await request
+                .input('quadra_id', sql.Int, data.quadraId)
+                .input('data', sql.Date, new Date(data.dataReserva))
+                .input('pagamento_id', sql.Int, data.pagamentoId ? Number(data.pagamentoId) : null)
+                .input('slot_id', sql.Int, data.slotId)
+                .input('nome_capitao', sql.NVarChar(255), data.nomeCapitao)
+                .query(
+                    `INSERT INTO reservas (quadra_id, data, pagamento_id, slot_id, nome_capitao)
+                     OUTPUT INSERTED.id
+                     VALUES (@quadra_id, @data, @pagamento_id, @slot_id, @nome_capitao)`
+                );
+            const id = result.recordset[0].id;
             if (!id) throw new Error("Erro ao inserir reserva");
-            return new Reserva(data.quadraId, data.dataReserva, data.nomeCapitao, data.slotId, data.pagamentoId, id);
+            return new Reserva(
+                data.quadraId,
+                data.dataReserva,
+                data.nomeCapitao,
+                data.slotId,
+                data.pagamentoId,
+                id
+            );
         } catch (error) {
             console.error("Erro ao criar reserva:", error);
             throw new Error("Erro ao criar reserva");
@@ -49,18 +57,21 @@ export class ReservaRepository {
     }
 
     async atualizarReserva(data: AtualizarPagamentoReservaDTO): Promise<void> {
-        const db = await this.dbPromise;
+        const pool = await getSqlConnection();
 
         const updates = Object.entries(data)
-            .filter(([_, value]) => value !== undefined)
-            .map(([key]) => `${key} = ?`);
+            .filter(([key, value]) => key !== "id" && value !== undefined)
+            .map(([key]) => `${key} = @${key}`);
 
         if (updates.length === 0) throw new Error("Nenhum campo para atualizar.");
 
-        const query = `UPDATE reservas SET ${updates.join(", ")} WHERE id = ?`;
-        const values = Object.values(data).filter(value => value !== undefined);
-        values.push(data.id);
-
-        await db.run(query, values);
+        const query = `UPDATE reservas SET ${updates.join(", ")} WHERE id = @id`;
+        const request = pool.request();
+        for (const [key, value] of Object.entries(data)) {
+            if (value !== undefined) {
+                request.input(key, value);
+            }
+        }
+        await request.query(query);
     }
 }
