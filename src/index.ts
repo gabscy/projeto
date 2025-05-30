@@ -23,13 +23,12 @@ const upload = multer({ storage: storage });
 app.use(express.json());
 app.use(cors());
 
-// Rate limiter middleware (e.g., max 100 requests per 15 minutes per IP)
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000, 
+    max: 5,
     standardHeaders: true,
     legacyHeaders: false,
-    message: 'Too many requests from this IP, please try again later.'
+    message: {message: "Tente novamente mais tarde"}
 });
 
 app.use(limiter);
