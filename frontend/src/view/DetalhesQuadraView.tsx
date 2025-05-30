@@ -44,9 +44,9 @@ function BuscarQuadrasView() {
 	const [slots, setSlots] = useState<Slot[]>([])
 	const [selectedSlot, setSelectedSlot] = useState<Slot | null>()
 
-	const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
-	const [tokenLoading, setTokenLoading] = useState<boolean>(true);
-	const [tokenError, setTokenError] = useState<string | null>(null);
+	const [, setIsValidToken] = useState<boolean | null>(null);
+	const [, setTokenLoading] = useState<boolean>(true);
+	const [, setTokenError] = useState<string | null>(null);
 
 	interface Slot {
 		id: number;

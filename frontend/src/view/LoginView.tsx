@@ -15,7 +15,7 @@ function LoginView() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [, setIsSubmitting] = useState(false);
     const { anterior } = useParams();
     const navigate = useNavigate();
 

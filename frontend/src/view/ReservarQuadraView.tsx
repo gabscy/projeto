@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@radix-ui/react-separator';
 import { FadeLoader } from "react-spinners"
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 function ReservarQuadraView() {
 
@@ -27,11 +28,11 @@ function ReservarQuadraView() {
     const [slot, setSlot] = useState<Slot>()
     	
     //autenticacao
-    const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
-    const [tokenLoading, setTokenLoading] = useState<boolean>(true);
-    const [tokenError, setTokenError] = useState<string | null>(null);
+    const [, setIsValidToken] = useState<boolean | null>(null);
+    const [, setTokenLoading] = useState<boolean>(true);
+    const [, setTokenError] = useState<string | null>(null);
 
-
+    const navigate = useNavigate();
 
     //Para autenticacao
    useEffect(() => {

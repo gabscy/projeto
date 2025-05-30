@@ -21,9 +21,9 @@ import Cookies from 'js-cookie';
 
 function PublicarQuadraView() {
   //autenticacao
-  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
-  const [tokenLoading, setTokenLoading] = useState<boolean>(true);
-  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [, setIsValidToken] = useState<boolean | null>(null);
+  const [, setTokenLoading] = useState<boolean>(true);
+  const [, setTokenError] = useState<string | null>(null);
 
 
   //tempo de funcionamento
