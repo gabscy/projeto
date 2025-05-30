@@ -17,18 +17,14 @@ import {  Link } from 'react-router-dom';
 import { FadeLoader } from "react-spinners"
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
+
 import { useQuery} from '@tanstack/react-query';
 
 function BuscarQuadrasView() {
 
-     const navigate = useNavigate();
+    const navigate = useNavigate();
 
-    //autenticacao
-    const [, setIsValidToken] = useState<boolean | null>(null);
-    const [, setTokenLoading] = useState<boolean>(true);
-    const [, setTokenError] = useState<string | null>(null);
-
-
+    //tipos de quadra
     const [selectedTypes, setSelectedTypes] = useState<Record<string, boolean>>({
        futebol: true,
         tennis: true,
@@ -36,79 +32,72 @@ function BuscarQuadrasView() {
         volei: true,
     });
 
+    //variaveis de filtro
     const [courtCEP, setCourtCEP] = useState('')
     const [minPrice, setMinPrice] = useState<number | string>('');
     const [maxPrice, setMaxPrice] = useState<number | string>('');
     const [filteredData, setFilteredData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-
-    const removeAuthCookie = () => {
-    Cookies.remove('authToken');
-    console.log('Authentication cookie removed.');
-  };
     
-    //Para autenticacao
+
+    
+    // funcao para realizar autenticacao ao entrar na pagina
    useEffect(() => {
     const checkTokenAndValidate = async () => {
-      setTokenLoading(true);
-      setTokenError(null);
 
-      const token = Cookies.get('authToken'); 
+        const token = Cookies.get('authToken'); 
+        //verifica se ja há um token
+        if (token) {
 
-      if (token) {
-        console.log('Cookie de token encontrado:', token);
-        try {
-          // Fazendo a requisição para validar o token
-          const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
-            method: 'GET', 
-            headers: {
-              'Authorization': `Bearer ${token}`, // Enviando o token 
-            },
-          });
+            console.log('Cookie de token encontrado:', token);
+            try {
+                //verifica se o token é valido
+                const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+                    method: 'GET', 
+                    headers: {
+                    'Authorization': `Bearer ${token}`, // Enviando o token 
+                    },
+                });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.valid) { 
-              setIsValidToken(true);
-              console.log('Token válido!');
-            } else {
-              setIsValidToken(false);
-              console.log('Token inválido ou expirado.');
-              Cookies.remove('authToken');
-            }
-          } else {
-            const errorData = await response.json();
-            setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
-            setIsValidToken(false);
-            console.error('Erro na resposta da validação do token:', response.status, errorData);
-            Cookies.remove('authToken');
-          }
-        } catch (erro) {
-          setTokenError(`Erro na requisição.`);
-          setIsValidToken(false);
-          console.error('Erro na requisição de validação do token:', erro);
-          Cookies.remove('authToken');
-        } finally {
-          setTokenLoading(false);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.valid) { 
+                        //se token é valido
+                        console.log('Token válido!');
+                    } else {
+                        //remove token se é invalido
+                        console.log('Token inválido ou expirado.');
+                        Cookies.remove('authToken');
+                        navigate("/login")
+                    }
+                } else {
+                    //erro ao obter token
+                    const errorData = await response.json();
+                    console.error('Erro na resposta da validação do token:', response.status, errorData);
+                    Cookies.remove('authToken');
+                }
+
+            } catch (erro) {
+                console.error('Erro na requisição de validação do token:', erro);
+                Cookies.remove('authToken');
+            } 
+
+        } else {
+            console.log('Cookie de token não encontrado.');
+            navigate("/login")
         }
-      } else {
-        console.log('Cookie de token não encontrado.');
-        setIsValidToken(false);
-        setTokenLoading(false);
-        navigate("/login")
-      }
     };
-
     checkTokenAndValidate();
   }, []);
 
 
 
-
+    //barra de pesquisa
      const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
          setSearchTerm(event.target.value);
     };
 
+    //tipo de quadra
     const handleCheckboxClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         const { id } = event.currentTarget;
         setSelectedTypes((prev) => ({
@@ -117,11 +106,13 @@ function BuscarQuadrasView() {
         }));
       };
 
+    //preco minimo
     const handleMinPriceChange = (value: string) => {
         const numValue = value ? Number(value) : '';
         numValue === "" ?   setMinPrice(numValue) : numValue < 0 ? setMinPrice(0) : setMinPrice(numValue)
     };
 
+    //preco maximo
     const handleMaxPriceChange = (value: string) => {
         const numValue = value ? Number(value) : '';
         numValue === "" ?   setMaxPrice(numValue) : numValue < 0 ? setMaxPrice(0) : setMaxPrice(numValue)
@@ -136,7 +127,7 @@ function BuscarQuadrasView() {
     };
     
    
-    // Define the fetch function
+    //funcao para obter detalhes das quadras
     const fetchQuadras = async () => {
         const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/buscar-quadras');
         if (!response.ok) {
@@ -156,6 +147,7 @@ function BuscarQuadrasView() {
         alert("Something went wrong")
     }
 
+    //arualiza filtros
     const atualizarFiltros = (allQuadras: any) => {
         
         if (!allQuadras) {
@@ -164,21 +156,20 @@ function BuscarQuadrasView() {
         }
 
         const filtered = allQuadras.filter((quadra: any) => {
-            // Filter selected types
+            // filtra tipo de quadra
             const isTypeSelected = selectedTypes[quadra.type] === true;
 
-            // Filter  min price
+            // filtra preco min
             const priceAboveMin =
                 minPrice === '' || (quadra.price !== undefined && Number(quadra.price) >= Number(minPrice));
 
-            // Filter  max price
+            // filtra precomax
             const priceBelowMax =
                 maxPrice === '' || (quadra.price !== undefined && Number(quadra.price) <= Number(maxPrice));
 
-                // Filter by name
+            //filtra nome de busca
             const nameIncludesSearchTerm =
                 searchTerm === '' || (quadra.name && quadra.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
 
             return isTypeSelected && priceAboveMin && priceBelowMax && nameIncludesSearchTerm;
         });
@@ -186,6 +177,7 @@ function BuscarQuadrasView() {
         setFilteredData(filtered);
     }
 
+    //aciona ao mudar um filtro
     useEffect(() => {
         if (data) {
             atualizarFiltros(data);
@@ -229,7 +221,6 @@ function BuscarQuadrasView() {
   
             </div>
 
-            <Button onClick={removeAuthCookie}></Button>
         </section>
 
         

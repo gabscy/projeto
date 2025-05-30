@@ -37,6 +37,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 function BuscarQuadrasView() {
+
 	const { id } = useParams();
 	const [date, setDate] = React.useState<Date>();
 	const today = startOfDay(new Date());
@@ -44,9 +45,7 @@ function BuscarQuadrasView() {
 	const [slots, setSlots] = useState<Slot[]>([])
 	const [selectedSlot, setSelectedSlot] = useState<Slot | null>()
 
-	const [, setIsValidToken] = useState<boolean | null>(null);
-	const [, setTokenLoading] = useState<boolean>(true);
-	const [, setTokenError] = useState<string | null>(null);
+	const navigate = useNavigate();
 
 	interface Slot {
 		id: number;
@@ -58,63 +57,58 @@ function BuscarQuadrasView() {
 	}
 
 
-	//Para autenticacao
-	useEffect(() => {
-		const checkTokenAndValidate = async () => {
-		setTokenLoading(true);
-		setTokenError(null);
+	// funcao para realizar autenticacao ao entrar na pagina
+    useEffect(() => {
+    const checkTokenAndValidate = async () => {
 
-		const token = Cookies.get('authToken'); 
+        const token = Cookies.get('authToken'); 
+        //verifica se ja há um token
+        if (token) {
 
-		if (token) {
-			console.log('Cookie de token encontrado:', token);
-			try {
-			// Fazendo a requisição para validar o token
-			const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
-				method: 'GET', 
-				headers: {
-				'Authorization': `Bearer ${token}`, // Enviando o token 
-				},
-			});
+            console.log('Cookie de token encontrado:', token);
+            try {
+                //verifica se o token é valido
+                const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/auth/validate', { 
+                    method: 'GET', 
+                    headers: {
+                    'Authorization': `Bearer ${token}`, // Enviando o token 
+                    },
+                });
 
-			if (response.ok) {
-				const data = await response.json();
-				if (data.valid) { 
-				setIsValidToken(true);
-				console.log('Token válido!');
-				} else {
-				setIsValidToken(false);
-				console.log('Token inválido ou expirado.');
-				Cookies.remove('authToken');
-				}
-			} else {
-				const errorData = await response.json();
-				setTokenError(`Erro na validação do token: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
-				setIsValidToken(false);
-				console.error('Erro na resposta da validação do token:', response.status, errorData);
-				Cookies.remove('authToken');
-			}
-			} catch (erro) {
-			setTokenError(`Erro na requisição.`);
-			setIsValidToken(false);
-			console.error('Erro na requisição de validação do token:', erro);
-			Cookies.remove('authToken');
-			} finally {
-			setTokenLoading(false);
-			}
-		} else {
-			console.log('Cookie de token não encontrado.');
-			setIsValidToken(false);
-			setTokenLoading(false);
-			navigate("/login")
-		}
-		};
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.valid) { 
+                        //se token é valido
+                        console.log('Token válido!');
+                    } else {
+                        //remove token se é invalido
+                        console.log('Token inválido ou expirado.');
+                        Cookies.remove('authToken');
+                        navigate("/login")
+                    }
+                } else {
+                    //erro ao obter token
+                    const errorData = await response.json();
+                    console.error('Erro na resposta da validação do token:', response.status, errorData);
+                    Cookies.remove('authToken');
+                }
 
-		checkTokenAndValidate();
-	}, []);
+            } catch (erro) {
+                console.error('Erro na requisição de validação do token:', erro);
+                Cookies.remove('authToken');
+            } 
+            
+        } else {
+            console.log('Cookie de token não encontrado.');
+            navigate("/login")
+        }
+    };
+
+    checkTokenAndValidate();
+  }, []);
 
 
-
+  	//formata a data selecionada para enviar para api
 	const formatDate = (date: Date | undefined): string => {
 		if (!date) return ''; 
 		const year = date.getFullYear();
@@ -123,19 +117,16 @@ function BuscarQuadrasView() {
 		return `${year}-${month}-${day}`;
 	}
 
+	//funcao para buscar detalhes de uma quadra
 	const fetchQuadra = async (id : string) => {
-		
         const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra/${id}`);
         if (!response.ok) {
 
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         return response.json()
-
 	};
 	
-
 	const { data: quadra, isFetching, error } = useQuery({
 		queryKey: ['quadra', id],
 		queryFn: () => fetchQuadra(id!), // Add the non-null assertion operator here
@@ -147,21 +138,21 @@ function BuscarQuadrasView() {
         alert("Something went wrong")
     }
 
+
+	//busca slots disponiveis em uma determinada data
 	const handleBuscarSlots = async () => {
 		try{
 			const formattedDate = formatDate(date);
-			
 			console.log(formattedDate)
 			const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/disponibilidade-quadra?date=${formattedDate}&quadraId=${id}`)
 			setSlots(await response.json())
-			
-				
 		}
 		catch(err){
 			alert("Something went wrong")
 		}
 	}
 
+	//formata o tempo dos slots
 	const formatTime = (hour: number): string => {
 		const integerPart = Math.floor(hour);
 		const decimalPart = hour - integerPart;
@@ -172,10 +163,7 @@ function BuscarQuadrasView() {
 		return `${formattedHour}:${formattedMinutes}`;
 	};
 
-	
-
-	const navigate = useNavigate();
-
+	//vai para a pagina de pagamento
 	const prosseguirPagamento = () =>{
 		const formattedDate = formatDate(date);
 		if(!selectedSlot)
@@ -184,7 +172,7 @@ function BuscarQuadrasView() {
 		navigate(`/reservar-quadra/${quadra.id}/${selectedSlot.id}/${formattedDate}`);
 	}
 
-
+	//busca slots de uma data 
 	useEffect(() => {
 		if(date){
 			setSelectedSlot(null)
@@ -392,9 +380,9 @@ function BuscarQuadrasView() {
 						</div>
 						
 						<Label className='text-lg' >Total : <span className='font-normal'>{ selectedSlot? quadra.price : 0} R$ </span></Label>
-							<Button disabled={!selectedSlot} className='w-full p-6' onClick={prosseguirPagamento}>
-								Prosseguir para o Pagamento
-							</Button>
+						<Button disabled={!selectedSlot} className='w-full p-6' onClick={prosseguirPagamento}>
+							Prosseguir para o Pagamento
+						</Button>
 						
 					</Card>
 				</div>
