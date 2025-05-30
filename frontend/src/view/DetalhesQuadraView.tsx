@@ -63,7 +63,7 @@ function BuscarQuadrasView() {
 
 	const fetchQuadra = async (id : string) => {
 		
-        const response = await fetch(`http://localhost:3000/quadra/${id}`);
+        const response = await fetch(`https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra/${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

@@ -259,7 +259,7 @@ function PublicarQuadraView() {
       console.log(formData)
       //publicar dados
       try {
-        const response = await fetch('http://localhost:3000/quadra', {
+        const response = await fetch('https://backend-projeto-v2-bhbmfzeahubeg6a8.brazilsouth-01.azurewebsites.net/quadra', {
           method: 'POST',
           body: formData,
         });
