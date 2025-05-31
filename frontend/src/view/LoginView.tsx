@@ -17,6 +17,7 @@ function LoginView() {
     const [password, setPassword] = useState('');
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
     const { anterior } = useParams();
+    const [invalidLogin, setInvalidLogin] = useState<boolean>(false);
     const navigate = useNavigate();
 
     //para validar o form
@@ -77,6 +78,7 @@ function LoginView() {
                 //login invalido
                 const errorData = await response.json();
                 setFormErrors({ general: errorData.message || 'Credenciais inválidas.' });
+                setInvalidLogin(true)
                 console.error('Falha no lign:', errorData);
             }
             
@@ -113,6 +115,8 @@ function LoginView() {
                         <Input type='password' onChange={(e) => setPassword(e.target.value)} placeholder='******'></Input>
                      
                     </div>
+
+                    {invalidLogin && <p className='text-red-500 text-start'>Login inválido</p> }
 
                     <Button  type='submit' variant={'default'}>Login</Button>
                 </Card>

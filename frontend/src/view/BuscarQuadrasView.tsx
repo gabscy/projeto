@@ -91,6 +91,14 @@ function BuscarQuadrasView() {
   }, []);
 
 
+    //funcao para remover token
+    const tokenRemove = () => {
+        const token = Cookies.get('authToken'); 
+        if(token){
+            Cookies.remove('authToken');
+        }
+        
+    }
 
     //barra de pesquisa
      const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,7 +214,7 @@ function BuscarQuadrasView() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                <NavigationMenuLink onClick={tokenRemove} className={navigationMenuTriggerStyle()}>
                     Minha Conta
                 </NavigationMenuLink>
                 </NavigationMenuItem>
