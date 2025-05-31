@@ -25,7 +25,7 @@ app.use(cors());
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 5,
+    max: 60,
     standardHeaders: true,
     legacyHeaders: false,
     message: {message: "Tente novamente mais tarde"}
