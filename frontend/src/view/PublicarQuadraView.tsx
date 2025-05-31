@@ -100,7 +100,7 @@ function PublicarQuadraView() {
 
         } else {
             console.log('Cookie de token não encontrado.');
-            navigate("publicar-quadra/login")
+            navigate("/publicar-quadra/login")
         }
     };
     checkTokenAndValidate();

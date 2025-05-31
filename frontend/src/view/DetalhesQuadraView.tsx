@@ -177,6 +177,7 @@ function BuscarQuadrasView() {
 		if(date){
 			setSelectedSlot(null)
 			handleBuscarSlots()
+			console.log(slots)
 		}
 	}, [date])
 
@@ -327,7 +328,7 @@ function BuscarQuadrasView() {
 										return (
 											<Button
 											key={slot.id}
-											disabled={slot.available === 1 || isPast}
+											disabled={slot.available == 1 || isPast}
 											variant={"outline"}
 											className={cn(
 												"px-3 py-1.5 rounded-md cursor-pointer transition-colors duration-200",
